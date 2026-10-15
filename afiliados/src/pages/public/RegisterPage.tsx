@@ -59,6 +59,27 @@ export const RegisterPage: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [registeredCode, setRegisteredCode] = useState('');
 
+  // Sponsor / Network parameters from URL (?sponsor=...&rate=...)
+  const [sponsorCode, setSponsorCode] = useState<string | null>(null);
+  const [sponsorRate, setSponsorRate] = useState<number | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const search = new URLSearchParams(window.location.search);
+      const sp = search.get('sponsor') || search.get('ref');
+      const rt = search.get('rate');
+      if (sp) setSponsorCode(sp.trim().toUpperCase());
+      if (rt) {
+        const parsed = Number(rt);
+        if (!isNaN(parsed) && parsed > 0) {
+          setSponsorRate(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Auto mask document
   const handleDocChange = (val: string) => {
     if (documentType === 'CPF') {
@@ -160,6 +181,8 @@ export const RegisterPage: React.FC = () => {
       pixKey: pixKey.trim(),
       socialChannels: socialChannels.trim(),
       promotionStrategy: promotionStrategy.trim(),
+      parentAffiliateCode: sponsorCode || undefined,
+      commissionRate: sponsorRate ? sponsorRate / 100 : undefined,
       termsAcceptedAt: nowIso,
       privacyAcceptedAt: nowIso
     };
@@ -255,6 +278,34 @@ export const RegisterPage: React.FC = () => {
           <div className="mb-6 p-4 bg-red-950/60 border border-red-500/40 rounded-2xl flex items-center gap-3 text-red-300 text-sm">
             <ShieldAlert className="w-5 h-5 shrink-0 text-red-400" />
             <span>{errors.form}</span>
+          </div>
+        )}
+
+        {sponsorCode && (
+          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-emerald-950/40 border border-emerald-500/50 rounded-2xl flex items-center justify-between gap-4 shadow-lg shadow-emerald-950/50">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-700 flex items-center justify-center text-xl shrink-0 shadow-md">
+                🍀
+              </div>
+              <div>
+                <span className="font-bold text-white text-sm block">
+                  Convite de Afiliado Parceiro
+                </span>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Você foi indicado pelo patrocinador <strong className="text-amber-400 font-mono font-bold">{sponsorCode}</strong>
+                  {sponsorRate ? (
+                    <> com comissão garantida de <strong className="text-emerald-400 font-bold">{sponsorRate}%</strong> por cada bilhete vendido!</>
+                  ) : (
+                    <> para fazer parte da equipe oficial!</>
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="hidden sm:block shrink-0">
+              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-bold whitespace-nowrap">
+                Vínculo Direto
+              </span>
+            </div>
           </div>
         )}
 

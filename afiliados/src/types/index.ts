@@ -54,6 +54,9 @@ export interface Affiliate {
   createdAt: string;
   approvedAt?: string;
   approvedBy?: string;
+  parentAffiliateId?: string;
+  parentAffiliateCode?: string;
+  parentAffiliateName?: string;
 }
 
 export interface AffiliateLink {
@@ -117,6 +120,9 @@ export interface Commission {
   buyerCpf?: string;
   ticketsCount?: number;
   tickets?: string[];
+  isOverride?: boolean;
+  subAffiliateCode?: string;
+  subAffiliateName?: string;
   createdAt: string;
 }
 

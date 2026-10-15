@@ -12,6 +12,12 @@
   "orientation": "portrait-primary",
   "categories": ["games", "entertainment"],
   "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "/manifest.json"
+    }
+  ],
   "icons": [
     {
       "src": "/icon-192.png",

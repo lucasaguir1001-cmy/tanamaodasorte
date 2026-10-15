@@ -28,6 +28,27 @@ export const Header: React.FC<HeaderProps> = ({
   myTicketsCount,
   currentUser
 }) => {
+  const [isInstalled, setIsInstalled] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkInstalled = () => {
+      if (typeof window === 'undefined') return;
+      const installed =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+        document.referrer.includes('android-app://') ||
+        window.location.search.includes('source=pwa') ||
+        localStorage.getItem('pwa_app_installed') === 'true';
+
+      if (installed) {
+        setIsInstalled(true);
+      }
+    };
+
+    checkInstalled();
+    window.addEventListener('appinstalled', checkInstalled);
+    return () => window.removeEventListener('appinstalled', checkInstalled);
+  }, []);
   return (
     <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur-md border-b border-emerald-900/40 text-white">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -115,20 +136,22 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden md:inline">Regras</span>
             </button>
 
-            {/* Instalar Aplicativo (PWA) */}
-            <button
-              onClick={() => {
-                if (typeof window !== 'undefined' && window.triggerPwaInstall) {
-                  window.triggerPwaInstall();
-                }
-              }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 transition-colors shadow-sm cursor-pointer"
-              title="Instalar Aplicativo Oficial no Celular ou Computador"
-            >
-              <Download className="w-3.5 h-3.5 text-amber-400 stroke-[2.5]" />
-              <span className="hidden sm:inline">Instalar App</span>
-              <span className="sm:hidden text-[11px]">App</span>
-            </button>
+            {/* Instalar Aplicativo (PWA) - Oculta automaticamente se já estiver instalado */}
+            {!isInstalled && (
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.triggerPwaInstall) {
+                    window.triggerPwaInstall();
+                  }
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 transition-colors shadow-sm cursor-pointer"
+                title="Instalar Aplicativo Oficial no Celular ou Computador"
+              >
+                <Download className="w-3.5 h-3.5 text-amber-400 stroke-[2.5]" />
+                <span className="hidden sm:inline">Instalar App</span>
+                <span className="sm:hidden text-[11px]">App</span>
+              </button>
+            )}
 
           </div>
 

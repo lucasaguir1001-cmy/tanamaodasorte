@@ -22,7 +22,10 @@ export async function POST(request: Request) {
       socialChannels,
       promotionStrategy,
       termsAcceptedAt,
-      privacyAcceptedAt
+      privacyAcceptedAt,
+      parentAffiliateCode,
+      parentAffiliateId,
+      commissionRate
     } = body;
 
     if (!fullName || !email || !documentNumber || !phone || !whatsapp) {
@@ -44,6 +47,24 @@ export async function POST(request: Request) {
       );
     }
 
+    // Processa vínculo de indicação/patrocinador (sub-afiliado)
+    let parentAff = null;
+    if (parentAffiliateCode || parentAffiliateId) {
+      const codeOrId = (parentAffiliateCode || parentAffiliateId || '').trim();
+      parentAff = await DatabaseService.getAffiliateByIdOrDoc(codeOrId);
+    }
+
+    // Calcula taxa de comissão definida pelo patrocinador ou padrão
+    let finalRate = 0.15;
+    if (commissionRate !== undefined && commissionRate !== null) {
+      const parsedRate = Number(commissionRate);
+      if (!isNaN(parsedRate)) {
+        finalRate = parsedRate > 1 ? parsedRate / 100 : parsedRate;
+      }
+    } else if (parentAff) {
+      finalRate = 0.10; // Padrão de 10% para sub-afiliados indicados
+    }
+
     // Gera código exclusivo único
     const prefix = fullName.trim().split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4) || 'LUCK';
     const randNum = Math.floor(1000 + Math.random() * 9000);
@@ -62,8 +83,9 @@ export async function POST(request: Request) {
       city: (city || '').trim(),
       state: (state || '').trim(),
       exclusiveCode: code,
-      status: 'pendente',
-      commissionRate: 0.15,
+      // Se foi indicado diretamente por um afiliado ativo, já inicia aprovado
+      status: parentAff ? 'aprovado' : 'pendente',
+      commissionRate: Number(finalRate.toFixed(4)),
       pixKeyType: pixKeyType || 'CPF',
       pixKey: (pixKey || '').trim(),
       socialChannels: (socialChannels || '').trim(),
@@ -73,9 +95,14 @@ export async function POST(request: Request) {
       balancePaid: 0,
       totalClicks: 0,
       totalConversions: 0,
+      parentAffiliateId: parentAff?.id,
+      parentAffiliateCode: parentAff?.exclusiveCode,
+      parentAffiliateName: parentAff?.fullName,
       termsAcceptedAt: termsAcceptedAt || new Date().toISOString(),
       privacyAcceptedAt: privacyAcceptedAt || new Date().toISOString(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      approvedAt: parentAff ? new Date().toISOString() : undefined,
+      approvedBy: parentAff ? `Afiliado Patrocinador: ${parentAff.exclusiveCode}` : undefined
     };
 
     const result = await DatabaseService.saveAffiliate(newAffiliate);

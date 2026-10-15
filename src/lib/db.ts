@@ -800,7 +800,10 @@ export class DatabaseService {
                 privacyAcceptedAt: row.privacy_accepted_at || localAff?.privacyAcceptedAt || new Date().toISOString(),
                 createdAt: row.created_at || localAff?.createdAt || new Date().toISOString(),
                 approvedAt: row.approved_at || localAff?.approvedAt,
-                approvedBy: row.approved_by || localAff?.approvedBy
+                approvedBy: row.approved_by || localAff?.approvedBy,
+                parentAffiliateId: row.parent_affiliate_id || localAff?.parentAffiliateId,
+                parentAffiliateCode: row.parent_affiliate_code || localAff?.parentAffiliateCode,
+                parentAffiliateName: row.parent_affiliate_name || localAff?.parentAffiliateName
               };
             });
         }
@@ -956,7 +959,10 @@ export class DatabaseService {
             privacyAcceptedAt: row.privacy_accepted_at || localAff?.privacyAcceptedAt || new Date().toISOString(),
             createdAt: row.created_at || localAff?.createdAt || new Date().toISOString(),
             approvedAt: row.approved_at || localAff?.approvedAt,
-            approvedBy: row.approved_by || localAff?.approvedBy
+            approvedBy: row.approved_by || localAff?.approvedBy,
+            parentAffiliateId: row.parent_affiliate_id || localAff?.parentAffiliateId,
+            parentAffiliateCode: row.parent_affiliate_code || localAff?.parentAffiliateCode,
+            parentAffiliateName: row.parent_affiliate_name || localAff?.parentAffiliateName
           };
 
           if (!localAff) {
@@ -1207,6 +1213,77 @@ export class DatabaseService {
     }
 
     console.log(`[Afiliados] Comissão de R$ ${commissionValue.toFixed(2)} salva com sucesso para ${aff.fullName} (${aff.exclusiveCode})! Comprador: ${buyerFirstName}`);
+
+    // Se o afiliado foi indicado por um patrocinador (sub-afiliado), calcula a comissão residual do pai
+    if (aff.parentAffiliateCode || aff.parentAffiliateId) {
+      try {
+        const parentCode = (aff.parentAffiliateCode || aff.parentAffiliateId || '').trim();
+        const parentAff = await this.getAffiliateByIdOrDoc(parentCode);
+        if (parentAff && parentAff.exclusiveCode.toUpperCase() !== aff.exclusiveCode.toUpperCase()) {
+          const parentBaseRate = parentAff.commissionRate || 0.15;
+          const subRate = aff.commissionRate || 0.10;
+          // Margem residual: a diferença entre a taxa do pai e a do filho (mínimo 1%)
+          const overrideRate = Number(Math.max(0.01, parentBaseRate - subRate).toFixed(4));
+          const overrideValue = Number((params.orderAmount * overrideRate).toFixed(2));
+
+          const overrideCommission: Commission = {
+            id: params.paymentId ? `comm_ovr_${params.paymentId}_${parentAff.id.substring(0, 5)}` : `comm_ovr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            conversionId: params.paymentId ? `conv_${params.paymentId}` : `conv_${Date.now()}`,
+            affiliateId: parentAff.id,
+            affiliateCode: parentAff.exclusiveCode,
+            affiliateName: parentAff.fullName,
+            orderAmount: params.orderAmount,
+            commissionRate: overrideRate,
+            commissionAmount: overrideValue,
+            campaign: `rede_${aff.exclusiveCode}`,
+            status: 'pendente',
+            buyerName: params.buyerName,
+            buyerFirstName,
+            buyerCpf: params.buyerCpf,
+            ticketsCount: params.ticketsCount,
+            tickets: params.tickets,
+            isOverride: true,
+            subAffiliateCode: aff.exclusiveCode,
+            subAffiliateName: aff.fullName,
+            createdAt: new Date().toISOString()
+          };
+
+          localDb.comissoes.unshift(overrideCommission);
+
+          // Atualiza saldo do patrocinador
+          const parentIdx = localDb.afiliados.findIndex(a =>
+            a.id === parentAff.id ||
+            a.exclusiveCode.toUpperCase() === parentAff.exclusiveCode.toUpperCase()
+          );
+
+          if (parentIdx !== -1) {
+            localDb.afiliados[parentIdx].balancePending = Number(((localDb.afiliados[parentIdx].balancePending || 0) + overrideValue).toFixed(2));
+            localDb.afiliados[parentIdx].totalConversions = (localDb.afiliados[parentIdx].totalConversions || 0) + 1;
+          }
+
+          writeLocalDb(localDb);
+
+          if (isSupabaseConfigured && supabase) {
+            try {
+              await supabase.from('mensagens').upsert({
+                id: overrideCommission.id,
+                destinatario_id: parentAff.id,
+                telefone: (params.buyerCpf || '00000000000').replace(/\D/g, ''),
+                tipo: 'comissao',
+                conteudo: JSON.stringify(overrideCommission),
+                status: overrideCommission.status,
+                data_envio: overrideCommission.createdAt
+              });
+            } catch (pSbErr) {
+              console.warn('Erro ao salvar comissão residual do pai no Supabase:', pSbErr);
+            }
+          }
+          console.log(`[Afiliados] Comissão residual de R$ ${overrideValue.toFixed(2)} atribuída ao patrocinador ${parentAff.fullName} (${parentAff.exclusiveCode})`);
+        }
+      } catch (parentErr) {
+        console.error('Erro ao processar comissão residual do patrocinador:', parentErr);
+      }
+    }
 
     return {
       success: true,

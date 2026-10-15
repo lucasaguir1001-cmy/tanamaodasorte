@@ -16,6 +16,7 @@ import { MaterialsPage } from './pages/dashboard/MaterialsPage';
 import { ReportsPage } from './pages/dashboard/ReportsPage';
 import { CommissionsPage } from './pages/dashboard/CommissionsPage';
 import { ProfilePage } from './pages/dashboard/ProfilePage';
+import { SubAffiliatesPage } from './pages/dashboard/SubAffiliatesPage';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -48,6 +49,14 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute requiredRole="affiliate">
                 <DashboardHome />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/afiliados/subafiliados"
+            element={
+              <ProtectedRoute requiredRole="affiliate">
+                <SubAffiliatesPage />
               </ProtectedRoute>
             }
           />

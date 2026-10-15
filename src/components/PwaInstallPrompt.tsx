@@ -33,31 +33,62 @@ export const PwaInstallPrompt: React.FC = () => {
   const [installedSuccess, setInstalledSuccess] = useState(false);
 
   useEffect(() => {
-    // 1. Detect if running as installed standalone PWA
-    const checkStandalone = () => {
+    // 1. Detect if running as installed standalone PWA or previously installed
+    const checkInstalled = async () => {
       const isStandaloneMode = 
         window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
-        document.referrer.includes('android-app://');
-      setIsStandalone(isStandaloneMode);
-      return isStandaloneMode;
+        document.referrer.includes('android-app://') ||
+        window.location.search.includes('source=pwa');
+
+      if (isStandaloneMode) {
+        localStorage.setItem('pwa_app_installed', 'true');
+        setIsStandalone(true);
+        setShowBanner(false);
+        return true;
+      }
+
+      // Check persistent installation flag
+      if (localStorage.getItem('pwa_app_installed') === 'true') {
+        setIsStandalone(true);
+        setShowBanner(false);
+        return true;
+      }
+
+      // Check Android / Chrome getInstalledRelatedApps API
+      if ('getInstalledRelatedApps' in window.navigator) {
+        try {
+          const relatedApps = await (window.navigator as any).getInstalledRelatedApps();
+          if (relatedApps && relatedApps.length > 0) {
+            localStorage.setItem('pwa_app_installed', 'true');
+            setIsStandalone(true);
+            setShowBanner(false);
+            return true;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      return false;
     };
 
-    const standalone = checkStandalone();
+    checkInstalled().then((alreadyInstalled) => {
+      if (alreadyInstalled) {
+        setShowBanner(false);
+      }
+    });
 
     // 2. Detect iOS Safari
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isAppleDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIos(isAppleDevice);
 
-    // If already standalone, do not show banners
-    if (standalone) {
-      setShowBanner(false);
-      return;
-    }
-
-    // Check if dismissed previously in current session
-    const isDismissed = sessionStorage.getItem('pwa_banner_dismissed') === 'true';
+    // Persistent check for previously dismissed banner
+    const isDismissed = 
+      localStorage.getItem('pwa_banner_dismissed') === 'true' ||
+      localStorage.getItem('pwa_app_installed') === 'true' ||
+      sessionStorage.getItem('pwa_banner_dismissed') === 'true';
 
     // 3. Listen for Android / Chrome / Edge 'beforeinstallprompt'
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -65,13 +96,18 @@ export const PwaInstallPrompt: React.FC = () => {
       const promptEvent = e as BeforeInstallPromptEvent;
       window.deferredPwaPrompt = promptEvent;
       setDeferredPrompt(promptEvent);
-      if (!isDismissed) {
+      
+      const alreadyInstalled = localStorage.getItem('pwa_app_installed') === 'true';
+      const userDismissed = localStorage.getItem('pwa_banner_dismissed') === 'true';
+      if (!alreadyInstalled && !userDismissed) {
         setShowBanner(true);
       }
     };
 
     // 4. Listen for app installed
     const handleAppInstalled = () => {
+      localStorage.setItem('pwa_app_installed', 'true');
+      localStorage.setItem('pwa_banner_dismissed', 'true');
       setIsStandalone(true);
       setShowBanner(false);
       setShowGuideModal(false);
@@ -85,6 +121,8 @@ export const PwaInstallPrompt: React.FC = () => {
         window.deferredPwaPrompt.prompt();
         window.deferredPwaPrompt.userChoice.then((choice) => {
           if (choice.outcome === 'accepted') {
+            localStorage.setItem('pwa_app_installed', 'true');
+            localStorage.setItem('pwa_banner_dismissed', 'true');
             setShowBanner(false);
             window.deferredPwaPrompt = null;
           }
@@ -98,9 +136,11 @@ export const PwaInstallPrompt: React.FC = () => {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     // For iOS users or browsers that don't emit beforeinstallprompt immediately,
-    // show floating banner after 3 seconds if not dismissed
+    // show floating banner after 3 seconds only if not installed and not dismissed
     const timer = setTimeout(() => {
-      if (!isDismissed && !standalone) {
+      const alreadyInstalled = localStorage.getItem('pwa_app_installed') === 'true';
+      const userDismissed = localStorage.getItem('pwa_banner_dismissed') === 'true';
+      if (!alreadyInstalled && !userDismissed) {
         setShowBanner(true);
       }
     }, 3000);
@@ -117,6 +157,8 @@ export const PwaInstallPrompt: React.FC = () => {
       await deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
       if (choice.outcome === 'accepted') {
+        localStorage.setItem('pwa_app_installed', 'true');
+        localStorage.setItem('pwa_banner_dismissed', 'true');
         setShowBanner(false);
         setDeferredPrompt(null);
         window.deferredPwaPrompt = null;
@@ -129,11 +171,17 @@ export const PwaInstallPrompt: React.FC = () => {
 
   const handleDismissBanner = () => {
     setShowBanner(false);
+    localStorage.setItem('pwa_banner_dismissed', 'true');
     sessionStorage.setItem('pwa_banner_dismissed', 'true');
   };
 
+  const handleCloseGuideModal = () => {
+    setShowGuideModal(false);
+    localStorage.setItem('pwa_banner_dismissed', 'true');
+  };
+
   // If already installed standalone and modal closed, render nothing
-  if (isStandalone && !showGuideModal) {
+  if ((isStandalone || (typeof window !== 'undefined' && localStorage.getItem('pwa_app_installed') === 'true')) && !showGuideModal) {
     return null;
   }
 
@@ -184,7 +232,7 @@ export const PwaInstallPrompt: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-emerald-500/50 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative">
             <button
-              onClick={() => setShowGuideModal(false)}
+              onClick={handleCloseGuideModal}
               className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
@@ -264,7 +312,7 @@ export const PwaInstallPrompt: React.FC = () => {
             )}
 
             <button
-              onClick={() => setShowGuideModal(false)}
+              onClick={handleCloseGuideModal}
               className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm rounded-xl transition-colors cursor-pointer"
             >
               Entendi!
