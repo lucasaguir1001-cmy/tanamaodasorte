@@ -1,0 +1,957 @@
+{
+  "usuarios": [
+    {
+      "id": "usr_1790672955015_idt38",
+      "nome_completo": "Mario Vieira",
+      "cpf": "33693883824",
+      "whatsapp": "84998144639",
+      "data_cadastro": "2026-09-29T09:09:15.015+00:00"
+    },
+    {
+      "id": "usr_1790697390180_cbobk",
+      "nome_completo": "William Honorio",
+      "cpf": "28809789067",
+      "whatsapp": "11940605073",
+      "data_cadastro": "2026-09-29T15:56:30.18+00:00"
+    },
+    {
+      "id": "usr_1791813510856_5h2kv",
+      "nome_completo": "Jardel Jânio Cassiano do Nascimento",
+      "cpf": "32524260801",
+      "whatsapp": "11982399525",
+      "data_cadastro": "2026-10-12T13:58:29.949+00:00"
+    },
+    {
+      "id": "usr_1790440920239_b174q",
+      "nome_completo": "Cristiano Alcântara",
+      "cpf": "08904223466",
+      "whatsapp": "83988082452",
+      "data_cadastro": "2026-09-26T16:42:00.239+00:00"
+    },
+    {
+      "id": "usr_1792027577789_lp3ja",
+      "nome_completo": "Joseane Cassiano Chaves",
+      "cpf": "10487801806",
+      "whatsapp": "83998081607",
+      "data_cadastro": "2026-10-15T01:26:17.789+00:00"
+    },
+    {
+      "id": "usr_1790713510778_bfqnx",
+      "nome_completo": "Patricia da Silva Martins",
+      "cpf": "08261747441",
+      "whatsapp": "83986714617",
+      "data_cadastro": "2026-09-29T20:25:10.778+00:00"
+    },
+    {
+      "id": "usr_1790710043207_xa2o0",
+      "nome_completo": "Julio Cesar",
+      "cpf": "04268479465",
+      "whatsapp": "83998081165",
+      "data_cadastro": "2026-09-29T19:27:23.207+00:00"
+    },
+    {
+      "id": "usr_1791820318336_vtqy0",
+      "nome_completo": "Francisco Gomes",
+      "cpf": "39635600453",
+      "whatsapp": "83996139572",
+      "data_cadastro": "2026-10-12T15:51:58.336+00:00"
+    },
+    {
+      "id": "usr_1790513988929_g7kj7",
+      "nome_completo": "Wisley Azevdedo Da Silva",
+      "cpf": "01807738442",
+      "whatsapp": "83921460279",
+      "data_cadastro": "2026-09-27T12:59:48.929+00:00"
+    },
+    {
+      "id": "usr_1790442049136_x1ipf",
+      "nome_completo": "Guarabira Silva",
+      "cpf": "33693683824",
+      "whatsapp": "83982137357",
+      "data_cadastro": "2026-09-26T17:00:49.136+00:00"
+    },
+    {
+      "id": "usr_1790539595814_d7e6w",
+      "nome_completo": "Elaine pereira",
+      "cpf": "42891606892",
+      "whatsapp": "11959917590",
+      "data_cadastro": "2026-09-27T20:06:35.814+00:00"
+    },
+    {
+      "id": "usr_1790544359264_u0vaz",
+      "nome_completo": "Alvoro neguinho",
+      "cpf": "91482766500",
+      "whatsapp": "11914827665",
+      "data_cadastro": "2026-09-27T21:25:59.264+00:00"
+    },
+    {
+      "id": "usr_1790544737309_zxg6e",
+      "nome_completo": "Ricardo Galtierre",
+      "cpf": "25964596436",
+      "whatsapp": "11982746095",
+      "data_cadastro": "2026-09-27T21:32:17.309+00:00"
+    },
+    {
+      "id": "usr_1791109559477_znvlb",
+      "nome_completo": "Mailson Vieira da silva",
+      "cpf": "09418597462",
+      "whatsapp": "83998515864",
+      "data_cadastro": "2026-10-04T10:25:59.477+00:00"
+    },
+    {
+      "id": "usr_1791278848223_c0e08",
+      "nome_completo": "Mário vieira",
+      "cpf": "71970878487",
+      "whatsapp": "84988651582",
+      "data_cadastro": "2026-10-06T09:27:28.223+00:00"
+    },
+    {
+      "id": "usr_1791280681378_h7fqq",
+      "nome_completo": "Teste",
+      "cpf": "61626277727",
+      "whatsapp": "31618313461",
+      "data_cadastro": "2026-10-06T09:58:01.378+00:00"
+    },
+    {
+      "id": "usr_1792048308321_7xz8j",
+      "nome_completo": "Jacaraú da Silva",
+      "cpf": "95122729468",
+      "whatsapp": "83996389414",
+      "data_cadastro": "2026-10-15T07:11:48.321+00:00"
+    },
+    {
+      "id": "usr_1791455979176_y0rjd",
+      "nome_completo": "Paulo",
+      "cpf": "32699745233",
+      "whatsapp": "83986453215",
+      "data_cadastro": "2026-10-08T10:39:39.176+00:00"
+    },
+    {
+      "id": "usr_1791748399115_r9fhm",
+      "nome_completo": "Maria Paula",
+      "cpf": "25869365987",
+      "whatsapp": "11963896357",
+      "data_cadastro": "2026-10-11T19:53:19.115+00:00"
+    },
+    {
+      "id": "usr_1790433298786_mdv3c",
+      "nome_completo": "Henrique Pereira",
+      "cpf": "28803773827",
+      "whatsapp": "11984352781",
+      "data_cadastro": "2026-09-26T14:34:58.786+00:00"
+    },
+    {
+      "id": "usr_1791285634978_aslhv",
+      "nome_completo": "Mario Vieira",
+      "cpf": "33693638824",
+      "whatsapp": "84998144639",
+      "data_cadastro": "2026-10-06T11:20:34.978+00:00"
+    },
+    {
+      "id": "usr_1791300664675_nicz3",
+      "nome_completo": "Diego Sales Martins",
+      "cpf": "07276846474",
+      "whatsapp": "83999095934",
+      "data_cadastro": "2026-10-06T15:31:04.675+00:00"
+    },
+    {
+      "id": "usr_1791302551286_m31xg",
+      "nome_completo": "Matheuss Almeida",
+      "cpf": "13076541420",
+      "whatsapp": "83993040415",
+      "data_cadastro": "2026-10-06T16:02:31.286+00:00"
+    },
+    {
+      "id": "usr_1791588640384_v3y4i",
+      "nome_completo": "Maria Celia",
+      "cpf": "22896325963",
+      "whatsapp": "11963289425",
+      "data_cadastro": "2026-10-09T23:30:40.384+00:00"
+    },
+    {
+      "id": "usr_1791633876034_4c0qs",
+      "nome_completo": "Maria Jose",
+      "cpf": "27896789700",
+      "whatsapp": "11986759780",
+      "data_cadastro": "2026-10-10T12:04:36.034+00:00"
+    },
+    {
+      "id": "usr_1791315273849_cujuk",
+      "nome_completo": "Enzo silva",
+      "cpf": "72282822389",
+      "whatsapp": "11958236699",
+      "data_cadastro": "2026-10-06T19:34:33.849+00:00"
+    },
+    {
+      "id": "usr_1791677514913_6jj7r",
+      "nome_completo": "Alecsandro Costa Madaleno",
+      "cpf": "03509760400",
+      "whatsapp": "8498876407",
+      "data_cadastro": "2026-10-11T00:11:54.913+00:00"
+    },
+    {
+      "id": "usr_1791317897932_d6bik",
+      "nome_completo": "José vagner da Silva Pereira",
+      "cpf": "04081931402",
+      "whatsapp": "83986595972",
+      "data_cadastro": "2026-10-06T20:18:17.932+00:00"
+    },
+    {
+      "id": "usr_1790602535451_zq2oe",
+      "nome_completo": "Willian Honório",
+      "cpf": "39930448861",
+      "whatsapp": "11940605073",
+      "data_cadastro": "2026-09-28T13:35:35.451+00:00"
+    },
+    {
+      "id": "usr_1791305469619_kyuos",
+      "nome_completo": "Diego Pedro",
+      "cpf": "90333692497",
+      "whatsapp": "84991089790",
+      "data_cadastro": "2026-10-06T16:51:09.619+00:00"
+    },
+    {
+      "id": "usr_1790624215861_g3fmi",
+      "nome_completo": "Ana Raquel Gomes da silva",
+      "cpf": "01098830474",
+      "whatsapp": "83996969875",
+      "data_cadastro": "2026-09-28T19:36:55.861+00:00"
+    },
+    {
+      "id": "usr_1790627691190_yxt13",
+      "nome_completo": "Caiohenriqur",
+      "cpf": "70155680474",
+      "whatsapp": "83993483794",
+      "data_cadastro": "2026-09-28T20:34:51.19+00:00"
+    },
+    {
+      "id": "usr_1790629774484_neh1g",
+      "nome_completo": "Alysson nascimento da Silva",
+      "cpf": "04287628403",
+      "whatsapp": "83998809795",
+      "data_cadastro": "2026-09-28T21:09:34.484+00:00"
+    },
+    {
+      "id": "usr_1790655579592_z921q",
+      "nome_completo": "Jamie Martin",
+      "cpf": "55555555555",
+      "whatsapp": "6049207584",
+      "data_cadastro": "2026-09-29T04:19:39.592+00:00"
+    },
+    {
+      "id": "usr_1790672076637_73v8s",
+      "nome_completo": "Nathan Alexandre de brito",
+      "cpf": "70595546455",
+      "whatsapp": "83999314288",
+      "data_cadastro": "2026-09-29T08:54:36.637+00:00"
+    },
+    {
+      "id": "usr_1791362100953_zjjoe",
+      "nome_completo": "Lucas da franca",
+      "cpf": "70882442414",
+      "whatsapp": "83993446530",
+      "data_cadastro": "2026-10-07T08:35:00.953+00:00"
+    },
+    {
+      "id": "usr_1791303374757_spfoh",
+      "nome_completo": "Fabiano geronimo da Silva",
+      "cpf": "01248930401",
+      "whatsapp": "83988682237",
+      "data_cadastro": "2026-10-06T16:16:14.757+00:00"
+    },
+    {
+      "id": "usr_1791375367036_ag1sm",
+      "nome_completo": "José Edinaldo",
+      "cpf": "79018050482",
+      "whatsapp": "83991506621",
+      "data_cadastro": "2026-10-07T12:16:07.036+00:00"
+    },
+    {
+      "id": "usr_1791380865915_q4xov",
+      "nome_completo": "Christrrone da Silva",
+      "cpf": "07650972496",
+      "whatsapp": "8399686840",
+      "data_cadastro": "2026-10-07T13:47:45.915+00:00"
+    },
+    {
+      "id": "usr_1791749673287_oag5r",
+      "nome_completo": "Henrique pereira",
+      "cpf": "28807378920",
+      "whatsapp": "11984352781",
+      "data_cadastro": "2026-10-11T20:14:33.287+00:00"
+    },
+    {
+      "id": "usr_1790437855155_iwiph",
+      "nome_completo": "Alecsandro Costa Madaleno",
+      "cpf": "03509760409",
+      "whatsapp": "84987076407",
+      "data_cadastro": "2026-09-26T15:50:55.156+00:00"
+    },
+    {
+      "id": "usr_1791742897333_4h0qk",
+      "nome_completo": "Queila tamires de Andrade Silva",
+      "cpf": "12173060481",
+      "whatsapp": "83996062518",
+      "data_cadastro": "2026-10-11T18:21:36.048+00:00"
+    },
+    {
+      "id": "usr_1791831241285_ls09l",
+      "nome_completo": "Rafael Da Silva Campos",
+      "cpf": "70123901405",
+      "whatsapp": "83998908210",
+      "data_cadastro": "2026-10-12T18:54:01.285+00:00"
+    },
+    {
+      "id": "usr_1791745465775_opva6",
+      "nome_completo": "Ademark Vieira De Lima",
+      "cpf": "02812548428",
+      "whatsapp": "83996545203",
+      "data_cadastro": "2026-10-11T19:04:25.775+00:00"
+    },
+    {
+      "id": "usr_1791801596343_fngwj",
+      "nome_completo": "Talis Saldanha da Silva",
+      "cpf": "09596093428",
+      "whatsapp": "83999449947",
+      "data_cadastro": "2026-10-12T10:39:56.343+00:00"
+    },
+    {
+      "id": "usr_22692896802",
+      "nome_completo": "Maria clara",
+      "cpf": "22692896802",
+      "whatsapp": "11984357090",
+      "data_cadastro": "2026-10-12T20:34:41.165+00:00"
+    }
+  ],
+  "sorteios": [
+    {
+      "id": "sorteio_1790552467648_s7z4g",
+      "data_sorteio": "2026-09-28T22:00:00+00:00",
+      "numeros_sorteados": "9505",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": true,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1790632802196_8qe61",
+      "data_sorteio": "2026-09-29T22:00:00+00:00",
+      "numeros_sorteados": "0921",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1790719467759_cqh8w",
+      "data_sorteio": "2026-09-30T22:00:00+00:00",
+      "numeros_sorteados": "4081",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1790808774818_hzt5u",
+      "data_sorteio": "2026-10-01T22:00:00+00:00",
+      "numeros_sorteados": "3099",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1790895713155_pe0fw",
+      "data_sorteio": "2026-10-02T22:00:00+00:00",
+      "numeros_sorteados": "5745",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791007019763_1p9t3",
+      "data_sorteio": "2026-10-03T22:00:00+00:00",
+      "numeros_sorteados": "7276",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791065352924_qyhp6",
+      "data_sorteio": "2026-10-04T22:00:00+00:00",
+      "numeros_sorteados": "0033",
+      "ganhador_id": "usr_1791109559477_znvlb",
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": true
+    },
+    {
+      "id": "sorteio_1791158328567_stia6",
+      "data_sorteio": "2026-10-05T22:00:00+00:00",
+      "numeros_sorteados": "1512",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791250383038_22x54",
+      "data_sorteio": "2026-10-06T22:00:00+00:00",
+      "numeros_sorteados": "4098",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791324580322_564fc",
+      "data_sorteio": "2026-10-07T22:00:00+00:00",
+      "numeros_sorteados": "1941",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791410432245_yxujm",
+      "data_sorteio": "2026-10-08T22:00:00+00:00",
+      "numeros_sorteados": "4238",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791497670062_qhowc",
+      "data_sorteio": "2026-10-09T22:00:00+00:00",
+      "numeros_sorteados": "6898",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791583201803_qt6nk",
+      "data_sorteio": "2026-10-10T22:00:00+00:00",
+      "numeros_sorteados": "9507",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791671968935_6uc3m",
+      "data_sorteio": "2026-10-11T22:00:00+00:00",
+      "numeros_sorteados": "8526",
+      "ganhador_id": "usr_1790442049136_x1ipf",
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": true
+    },
+    {
+      "id": "sorteio_1791756831084_7xv3q",
+      "data_sorteio": "2026-10-12T22:00:00+00:00",
+      "numeros_sorteados": "6786",
+      "ganhador_id": "usr_22692896802",
+      "premio": 500,
+      "acumulado": false,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791842551621_byfu3",
+      "data_sorteio": "2026-10-13T22:00:00+00:00",
+      "numeros_sorteados": "6212",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": true,
+      "status": "finalizado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1792015705805_8sbfw",
+      "data_sorteio": "2026-10-15T22:00:00+00:00",
+      "numeros_sorteados": null,
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": false,
+      "status": "agendado",
+      "eh_domingo": false
+    },
+    {
+      "id": "sorteio_1791929405443_rpm9g",
+      "data_sorteio": "2026-10-14T22:00:00+00:00",
+      "numeros_sorteados": "7531",
+      "ganhador_id": null,
+      "premio": 500,
+      "acumulado": true,
+      "status": "finalizado",
+      "eh_domingo": false
+    }
+  ],
+  "bilhetes": [
+    {
+      "id": "bilhete_1792047480741_2181",
+      "numero_milhar": "2181",
+      "usuario_id": "usr_1790442049136_x1ipf",
+      "sorteio_id": "sorteio_1792015705805_8sbfw",
+      "data_compra": "2026-10-15T06:58:00.741+00:00",
+      "status_pagamento": true,
+      "valor": 2
+    },
+    {
+      "id": "bilhete_1792047480741_2620",
+      "numero_milhar": "2620",
+      "usuario_id": "usr_1790442049136_x1ipf",
+      "sorteio_id": "sorteio_1792015705805_8sbfw",
+      "data_compra": "2026-10-15T06:58:00.741+00:00",
+      "status_pagamento": true,
+      "valor": 2
+    },
+    {
+      "id": "bilhete_1792048629514_6143",
+      "numero_milhar": "6143",
+      "usuario_id": "usr_1792048308321_7xz8j",
+      "sorteio_id": "sorteio_1792015705805_8sbfw",
+      "data_compra": "2026-10-15T07:17:09.514+00:00",
+      "status_pagamento": true,
+      "valor": 2
+    },
+    {
+      "id": "bilhete_1792048629514_6938",
+      "numero_milhar": "6938",
+      "usuario_id": "usr_1792048308321_7xz8j",
+      "sorteio_id": "sorteio_1792015705805_8sbfw",
+      "data_compra": "2026-10-15T07:17:09.514+00:00",
+      "status_pagamento": true,
+      "valor": 2
+    },
+    {
+      "id": "bilhete_1792048629514_5017",
+      "numero_milhar": "5017",
+      "usuario_id": "usr_1792048308321_7xz8j",
+      "sorteio_id": "sorteio_1792015705805_8sbfw",
+      "data_compra": "2026-10-15T07:17:09.514+00:00",
+      "status_pagamento": true,
+      "valor": 2
+    }
+  ],
+  "mensagens": [
+    {
+      "id": "comm_1791744584872_mario",
+      "destinatario_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "telefone": "33693683824",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_1791744584872_mario\",\"conversionId\":\"conv_1791744584872_3265\",\"affiliateId\":\"1ad9975d-7abd-4aa7-b35a-327e350444f3\",\"affiliateCode\":\"MARI-7996\",\"affiliateName\":\"Mario vieira da Silva\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Mario vieira da Silva\",\"buyerFirstName\":\"Mario\",\"buyerCpf\":\"33693683824\",\"ticketsCount\":1,\"tickets\":[\"3265\"],\"createdAt\":\"2026-10-11T18:49:44.872Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-11T18:49:44.872+00:00"
+    },
+    {
+      "id": "comm_1791745650910_queila",
+      "destinatario_id": "4db9596a-2cda-4f0f-b9bd-5364cd371f8c",
+      "telefone": "02812548428",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_1791745650910_queila\",\"conversionId\":\"conv_1791745650910_0304\",\"affiliateId\":\"4db9596a-2cda-4f0f-b9bd-5364cd371f8c\",\"affiliateCode\":\"QUEI-2032\",\"affiliateName\":\"Queila tamires de Andrade Silva\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Ademark Vieira De Lima\",\"buyerFirstName\":\"Ademark\",\"buyerCpf\":\"02812548428\",\"ticketsCount\":1,\"tickets\":[\"0304\"],\"createdAt\":\"2026-10-11T19:07:30.910Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-11T19:07:30.91+00:00"
+    },
+    {
+      "id": "comm_1791748800000_flavio",
+      "destinatario_id": "61a20b9c-fb98-4b6c-b7f3-7a52822a29bc",
+      "telefone": "28803773827",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_1791748800000_flavio\",\"conversionId\":\"conv_1791748800000_flav\",\"affiliateId\":\"61a20b9c-fb98-4b6c-b7f3-7a52822a29bc\",\"affiliateCode\":\"FLAV-5860\",\"affiliateName\":\"Flavio Henrique da Silva\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Flavio henrique\",\"buyerFirstName\":\"Flavio\",\"buyerCpf\":\"28803773827\",\"ticketsCount\":1,\"tickets\":[\"7630\"],\"createdAt\":\"2026-10-11T19:53:19.115Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-11T19:53:19.115+00:00"
+    },
+    {
+      "id": "res_183670278962",
+      "destinatario_id": null,
+      "telefone": "84998144639",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183670278962\",\"paymentId\":\"183670278962\",\"tickets\":[\"8526\"],\"amount\":2,\"userName\":\"Mario Vieira\",\"userCpf\":\"33693683824\",\"userWhatsapp\":\"84998144639\",\"affiliateCode\":\"MARI-7996\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-11T20:14:33.893Z\",\"expiresAt\":\"2026-10-11T20:29:34.661Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-11T20:14:33.893+00:00"
+    },
+    {
+      "id": "res_183670191168",
+      "destinatario_id": null,
+      "telefone": "11984352781",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183670191168\",\"paymentId\":\"183670191168\",\"tickets\":[\"1800\"],\"amount\":2,\"userName\":\"Henrique pereira\",\"userCpf\":\"28807378920\",\"userWhatsapp\":\"11984352781\",\"affiliateCode\":\"MARI-7996\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-11T20:14:52.596Z\",\"expiresAt\":\"2026-10-11T20:29:53.183Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-11T20:14:52.596+00:00"
+    },
+    {
+      "id": "comm_183670278962",
+      "destinatario_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "telefone": "33693683824",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183670278962\",\"conversionId\":\"conv_183670278962\",\"affiliateId\":\"1ad9975d-7abd-4aa7-b35a-327e350444f3\",\"affiliateCode\":\"MARI-7996\",\"affiliateName\":\"Mario Vieira\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Mario Vieira\",\"buyerFirstName\":\"Mario\",\"buyerCpf\":\"33693683824\",\"ticketsCount\":1,\"tickets\":[\"8526\"],\"createdAt\":\"2026-10-11T20:15:22.374Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-11T20:15:22.374+00:00"
+    },
+    {
+      "id": "comm_183670191168",
+      "destinatario_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "telefone": "28807378920",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183670191168\",\"conversionId\":\"conv_183670191168\",\"affiliateId\":\"1ad9975d-7abd-4aa7-b35a-327e350444f3\",\"affiliateCode\":\"MARI-7996\",\"affiliateName\":\"Mario Vieira\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Henrique pereira\",\"buyerFirstName\":\"Henrique\",\"buyerCpf\":\"28807378920\",\"ticketsCount\":1,\"tickets\":[\"1800\"],\"createdAt\":\"2026-10-11T20:15:44.909Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-11T20:15:44.909+00:00"
+    },
+    {
+      "id": "res_182660508195",
+      "destinatario_id": null,
+      "telefone": "83996139572",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"182660508195\",\"paymentId\":\"182660508195\",\"tickets\":[\"5343\"],\"amount\":2,\"userName\":\"Francisco Gomes\",\"userCpf\":\"33693683824\",\"userWhatsapp\":\"83996139572\",\"affiliateCode\":\"MARI-7996\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-11T21:33:57.799Z\",\"expiresAt\":\"2026-10-11T21:48:58.089Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-11T21:33:57.799+00:00"
+    },
+    {
+      "id": "comm_182660508195",
+      "destinatario_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "telefone": "33693683824",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_182660508195\",\"conversionId\":\"conv_182660508195\",\"affiliateId\":\"1ad9975d-7abd-4aa7-b35a-327e350444f3\",\"affiliateCode\":\"MARI-7996\",\"affiliateName\":\"Francisco Gomes\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Francisco Gomes\",\"buyerFirstName\":\"Francisco\",\"buyerCpf\":\"33693683824\",\"ticketsCount\":1,\"tickets\":[\"5343\"],\"createdAt\":\"2026-10-11T21:34:55.603Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-11T21:34:55.603+00:00"
+    },
+    {
+      "id": "res_182679962281",
+      "destinatario_id": null,
+      "telefone": "83996062518",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"182679962281\",\"paymentId\":\"182679962281\",\"tickets\":[\"6026\"],\"amount\":2,\"userName\":\"Queila tamires de Andrade Silva\",\"userCpf\":\"12173060481\",\"userWhatsapp\":\"83996062518\",\"affiliateCode\":\"QUEI-2032\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-11T23:53:48.054Z\",\"expiresAt\":\"2026-10-12T00:08:48.340Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-11T23:53:48.054+00:00"
+    },
+    {
+      "id": "comm_182679962281",
+      "destinatario_id": "4db9596a-2cda-4f0f-b9bd-5364cd371f8c",
+      "telefone": "12173060481",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_182679962281\",\"conversionId\":\"conv_182679962281\",\"affiliateId\":\"4db9596a-2cda-4f0f-b9bd-5364cd371f8c\",\"affiliateCode\":\"QUEI-2032\",\"affiliateName\":\"Queila tamires de Andrade Silva\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Queila tamires de Andrade Silva\",\"buyerFirstName\":\"Queila\",\"buyerCpf\":\"12173060481\",\"ticketsCount\":1,\"tickets\":[\"6026\"],\"createdAt\":\"2026-10-11T23:54:36.106Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-11T23:54:36.106+00:00"
+    },
+    {
+      "id": "res_183721247480",
+      "destinatario_id": null,
+      "telefone": "83996545203",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183721247480\",\"paymentId\":\"183721247480\",\"tickets\":[\"2113\"],\"amount\":2,\"userName\":\"Ademark Vieira De Lima\",\"userCpf\":\"02812548428\",\"userWhatsapp\":\"83996545203\",\"affiliateCode\":\"QUEI-2032\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T03:10:00.012Z\",\"expiresAt\":\"2026-10-12T03:25:00.311Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T03:10:00.012+00:00"
+    },
+    {
+      "id": "comm_183721247480",
+      "destinatario_id": "4db9596a-2cda-4f0f-b9bd-5364cd371f8c",
+      "telefone": "02812548428",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183721247480\",\"conversionId\":\"conv_183721247480\",\"affiliateId\":\"4db9596a-2cda-4f0f-b9bd-5364cd371f8c\",\"affiliateCode\":\"QUEI-2032\",\"affiliateName\":\"Queila tamires de Andrade Silva\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Ademark Vieira De Lima\",\"buyerFirstName\":\"Ademark\",\"buyerCpf\":\"02812548428\",\"ticketsCount\":1,\"tickets\":[\"2113\"],\"createdAt\":\"2026-10-12T03:10:50.365Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-12T03:10:50.365+00:00"
+    },
+    {
+      "id": "res_183739530022",
+      "destinatario_id": null,
+      "telefone": "83999449947",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183739530022\",\"paymentId\":\"183739530022\",\"tickets\":[\"7778\"],\"amount\":2,\"userName\":\"Talis Saldanha da Silva\",\"userCpf\":\"09596093428\",\"userWhatsapp\":\"83999449947\",\"affiliateCode\":\"QUEI-2032\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T10:40:19.250Z\",\"expiresAt\":\"2026-10-12T10:55:19.771Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T10:40:19.25+00:00"
+    },
+    {
+      "id": "res_183766637502",
+      "destinatario_id": null,
+      "telefone": "11982399525",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183766637502\",\"paymentId\":\"183766637502\",\"tickets\":[\"3355\"],\"amount\":2,\"userName\":\"JARDEL JANIO CASSIANO DO NASCIMENTO\",\"userCpf\":\"32524260801\",\"userWhatsapp\":\"11982399525\",\"affiliateCode\":\"JARD-1161\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T14:44:30.432Z\",\"expiresAt\":\"2026-10-12T14:59:30.739Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T14:44:30.432+00:00"
+    },
+    {
+      "id": "comm_183766637502",
+      "destinatario_id": "4c4f7aaa-ccbd-4ae3-9535-78f01f60db0d",
+      "telefone": "32524260801",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183766637502\",\"conversionId\":\"conv_183766637502\",\"affiliateId\":\"4c4f7aaa-ccbd-4ae3-9535-78f01f60db0d\",\"affiliateCode\":\"JARD-1161\",\"affiliateName\":\"JARDEL JANIO CASSIANO DO NASCIMENTO\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"JARDEL JANIO CASSIANO DO NASCIMENTO\",\"buyerFirstName\":\"JARDEL\",\"buyerCpf\":\"32524260801\",\"ticketsCount\":1,\"tickets\":[\"3355\"],\"createdAt\":\"2026-10-12T14:45:21.347Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-12T14:45:21.347+00:00"
+    },
+    {
+      "id": "res_183778331560",
+      "destinatario_id": null,
+      "telefone": "83996139572",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183778331560\",\"paymentId\":\"183778331560\",\"tickets\":[\"1849\"],\"amount\":2,\"userName\":\"Francisco Gomes\",\"userCpf\":\"39635600453\",\"userWhatsapp\":\"83996139572\",\"affiliateCode\":\"MARI-7996\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T15:53:42.900Z\",\"expiresAt\":\"2026-10-12T16:08:43.431Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T15:53:42.9+00:00"
+    },
+    {
+      "id": "comm_183778331560",
+      "destinatario_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "telefone": "39635600453",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183778331560\",\"conversionId\":\"conv_183778331560\",\"affiliateId\":\"1ad9975d-7abd-4aa7-b35a-327e350444f3\",\"affiliateCode\":\"MARI-7996\",\"affiliateName\":\"Francisco Gomes\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Francisco Gomes\",\"buyerFirstName\":\"Francisco\",\"buyerCpf\":\"39635600453\",\"ticketsCount\":1,\"tickets\":[\"1849\"],\"createdAt\":\"2026-10-12T15:57:06.152Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-12T15:57:06.152+00:00"
+    },
+    {
+      "id": "res_183782951836",
+      "destinatario_id": null,
+      "telefone": "11984352781",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183782951836\",\"paymentId\":\"183782951836\",\"tickets\":[\"1322\"],\"amount\":2,\"userName\":\"Henrique Pereira\",\"userCpf\":\"28803773827\",\"userWhatsapp\":\"11984352781\",\"affiliateCode\":\"MARI-7996\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T16:21:45.837Z\",\"expiresAt\":\"2026-10-12T16:36:46.478Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T16:21:45.837+00:00"
+    },
+    {
+      "id": "comm_183782951836",
+      "destinatario_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "telefone": "28803773827",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183782951836\",\"conversionId\":\"conv_183782951836\",\"affiliateId\":\"1ad9975d-7abd-4aa7-b35a-327e350444f3\",\"affiliateCode\":\"MARI-7996\",\"affiliateName\":\"Francisco Gomes\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Henrique Pereira\",\"buyerFirstName\":\"Henrique\",\"buyerCpf\":\"28803773827\",\"ticketsCount\":1,\"tickets\":[\"1322\"],\"createdAt\":\"2026-10-12T16:23:13.564Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-12T16:23:13.564+00:00"
+    },
+    {
+      "id": "res_183789784656",
+      "destinatario_id": null,
+      "telefone": "84998144639",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183789784656\",\"paymentId\":\"183789784656\",\"tickets\":[\"6186\"],\"amount\":2,\"userName\":\"Mario Vieira\",\"userCpf\":\"33693683824\",\"userWhatsapp\":\"84998144639\",\"affiliateCode\":\"FLAV-5860\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T16:58:52.722Z\",\"expiresAt\":\"2026-10-12T17:13:53.037Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T16:58:52.722+00:00"
+    },
+    {
+      "id": "res_183788933916",
+      "destinatario_id": null,
+      "telefone": "84987076407",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183788933916\",\"paymentId\":\"183788933916\",\"tickets\":[\"3377\"],\"amount\":2,\"userName\":\"Alecsandro Costa Madaleno\",\"userCpf\":\"03509760409\",\"userWhatsapp\":\"84987076407\",\"affiliateCode\":\"FLAV-5860\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T16:59:03.496Z\",\"expiresAt\":\"2026-10-12T17:14:03.799Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T16:59:03.496+00:00"
+    },
+    {
+      "id": "comm_183789784656",
+      "destinatario_id": "61a20b9c-fb98-4b6c-b7f3-7a52822a29bc",
+      "telefone": "33693683824",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183789784656\",\"conversionId\":\"conv_183789784656\",\"affiliateId\":\"61a20b9c-fb98-4b6c-b7f3-7a52822a29bc\",\"affiliateCode\":\"FLAV-5860\",\"affiliateName\":\"Henrique Pereira\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Mario Vieira\",\"buyerFirstName\":\"Mario\",\"buyerCpf\":\"33693683824\",\"ticketsCount\":1,\"tickets\":[\"6186\"],\"createdAt\":\"2026-10-12T17:00:25.174Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-12T17:00:25.174+00:00"
+    },
+    {
+      "id": "comm_183788933916",
+      "destinatario_id": "61a20b9c-fb98-4b6c-b7f3-7a52822a29bc",
+      "telefone": "03509760409",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183788933916\",\"conversionId\":\"conv_183788933916\",\"affiliateId\":\"61a20b9c-fb98-4b6c-b7f3-7a52822a29bc\",\"affiliateCode\":\"FLAV-5860\",\"affiliateName\":\"Henrique Pereira\",\"orderAmount\":2,\"commissionRate\":0.15,\"commissionAmount\":0.3,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Alecsandro Costa Madaleno\",\"buyerFirstName\":\"Alecsandro\",\"buyerCpf\":\"03509760409\",\"ticketsCount\":1,\"tickets\":[\"3377\"],\"createdAt\":\"2026-10-12T17:00:27.167Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-12T17:00:27.167+00:00"
+    },
+    {
+      "id": "res_182785486247",
+      "destinatario_id": null,
+      "telefone": "83998908210",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"182785486247\",\"paymentId\":\"182785486247\",\"tickets\":[\"6952\"],\"amount\":2,\"userName\":\"Rafael Da Silva Campos\",\"userCpf\":\"70123901405\",\"userWhatsapp\":\"83998908210\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T18:54:51.138Z\",\"expiresAt\":\"2026-10-12T19:09:51.714Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T18:54:51.138+00:00"
+    },
+    {
+      "id": "res_182784723611",
+      "destinatario_id": null,
+      "telefone": "83998908210",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"182784723611\",\"paymentId\":\"182784723611\",\"tickets\":[\"6952\",\"0695\"],\"amount\":4,\"userName\":\"Rafael Da Silva Campos\",\"userCpf\":\"70123901405\",\"userWhatsapp\":\"83998908210\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T18:56:20.183Z\",\"expiresAt\":\"2026-10-12T19:11:20.803Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T18:56:20.183+00:00"
+    },
+    {
+      "id": "res_182785969067",
+      "destinatario_id": null,
+      "telefone": "11982399525",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"182785969067\",\"paymentId\":\"182785969067\",\"tickets\":[\"6459\",\"7982\",\"4071\",\"2288\",\"8459\"],\"amount\":10,\"userName\":\"JARDEL JANIO CASSIANO DO NASCIMENTO\",\"userCpf\":\"32524260801\",\"userWhatsapp\":\"11982399525\",\"affiliateCode\":\"JARD-1161\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-12T19:02:47.523Z\",\"expiresAt\":\"2026-10-12T19:17:47.818Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-12T19:02:47.523+00:00"
+    },
+    {
+      "id": "comm_182785969067",
+      "destinatario_id": "4c4f7aaa-ccbd-4ae3-9535-78f01f60db0d",
+      "telefone": "32524260801",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_182785969067\",\"conversionId\":\"conv_182785969067\",\"affiliateId\":\"4c4f7aaa-ccbd-4ae3-9535-78f01f60db0d\",\"affiliateCode\":\"JARD-1161\",\"affiliateName\":\"JARDEL JANIO CASSIANO DO NASCIMENTO\",\"orderAmount\":10,\"commissionRate\":0.15,\"commissionAmount\":1.5,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"JARDEL JANIO CASSIANO DO NASCIMENTO\",\"buyerFirstName\":\"JARDEL\",\"buyerCpf\":\"32524260801\",\"ticketsCount\":5,\"tickets\":[\"6459\",\"7982\",\"4071\",\"2288\",\"8459\"],\"createdAt\":\"2026-10-12T19:08:20.503Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-12T19:08:20.503+00:00"
+    },
+    {
+      "id": "sorteado_programado_active",
+      "destinatario_id": "usr_22692896802",
+      "telefone": "11984357090",
+      "tipo": "sorteado_programado",
+      "conteudo": "{\"id\":\"sorteado_1791837281643\",\"nome_completo\":\"Maria clara\",\"cpf\":\"22692896802\",\"whatsapp\":\"11984357090\",\"numero_milhar\":\"6786\",\"ativo\":false,\"criado_em\":\"2026-10-12T20:34:41.643Z\",\"utilizado_em\":\"sorteio_1791756831084_7xv3q\"}",
+      "status": "inativo",
+      "data_envio": "2026-10-12T20:34:41.643+00:00"
+    },
+    {
+      "id": "res_184230167952",
+      "destinatario_id": null,
+      "telefone": "83998081607",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"184230167952\",\"paymentId\":\"184230167952\",\"tickets\":[\"6823\",\"6911\",\"9155\",\"3604\",\"6588\"],\"amount\":10,\"userName\":\"Joseane Cassiano Chaves\",\"userCpf\":\"10487801806\",\"userWhatsapp\":\"83998081607\",\"affiliateCode\":\"JARD-1161\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-15T01:29:09.364Z\",\"expiresAt\":\"2026-10-15T01:44:09.655Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-15T01:29:09.364+00:00"
+    },
+    {
+      "id": "res_183224466493",
+      "destinatario_id": null,
+      "telefone": "83982137357",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183224466493\",\"paymentId\":\"183224466493\",\"tickets\":[\"2527\"],\"amount\":2,\"userName\":\"Guarabira Silva\",\"userCpf\":\"33693683824\",\"userWhatsapp\":\"83982137357\",\"affiliateCode\":\"MARI-7996\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-15T06:55:04.261Z\",\"expiresAt\":\"2026-10-15T07:10:04.777Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-15T06:55:04.261+00:00"
+    },
+    {
+      "id": "res_183224722277",
+      "destinatario_id": null,
+      "telefone": "83982137357",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"183224722277\",\"paymentId\":\"183224722277\",\"tickets\":[\"2181\",\"2620\"],\"amount\":4,\"userName\":\"Guarabira Silva\",\"userCpf\":\"33693683824\",\"userWhatsapp\":\"83982137357\",\"affiliateCode\":\"MARI-7996\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-15T06:57:05.844Z\",\"expiresAt\":\"2026-10-15T07:12:06.362Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-15T06:57:05.844+00:00"
+    },
+    {
+      "id": "comm_183224722277",
+      "destinatario_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "telefone": "33693683824",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_183224722277\",\"conversionId\":\"conv_183224722277\",\"affiliateId\":\"1ad9975d-7abd-4aa7-b35a-327e350444f3\",\"affiliateCode\":\"MARI-7996\",\"affiliateName\":\"Guarabira Silva\",\"orderAmount\":4,\"commissionRate\":0.15,\"commissionAmount\":0.6,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Guarabira Silva\",\"buyerFirstName\":\"Guarabira\",\"buyerCpf\":\"33693683824\",\"ticketsCount\":2,\"tickets\":[\"2181\",\"2620\"],\"createdAt\":\"2026-10-15T06:58:06.037Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-15T06:58:06.037+00:00"
+    },
+    {
+      "id": "res_184248499954",
+      "destinatario_id": null,
+      "telefone": "83996389414",
+      "tipo": "reserva",
+      "conteudo": "{\"id\":\"184248499954\",\"paymentId\":\"184248499954\",\"tickets\":[\"6143\",\"6938\",\"5017\"],\"amount\":6,\"userName\":\"Jacaraú da Silva\",\"userCpf\":\"95122729468\",\"userWhatsapp\":\"83996389414\",\"affiliateCode\":\"MARI-7996\",\"campaign\":\"padrao\",\"status\":\"pending\",\"createdAt\":\"2026-10-15T07:12:09.404Z\",\"expiresAt\":\"2026-10-15T07:27:09.689Z\"}",
+      "status": "pending",
+      "data_envio": "2026-10-15T07:12:09.404+00:00"
+    },
+    {
+      "id": "comm_184248499954",
+      "destinatario_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "telefone": "95122729468",
+      "tipo": "comissao",
+      "conteudo": "{\"id\":\"comm_184248499954\",\"conversionId\":\"conv_184248499954\",\"affiliateId\":\"1ad9975d-7abd-4aa7-b35a-327e350444f3\",\"affiliateCode\":\"MARI-7996\",\"affiliateName\":\"Guarabira Silva\",\"orderAmount\":6,\"commissionRate\":0.15,\"commissionAmount\":0.9,\"campaign\":\"padrao\",\"status\":\"pendente\",\"buyerName\":\"Jacaraú da Silva\",\"buyerFirstName\":\"Jacaraú\",\"buyerCpf\":\"95122729468\",\"ticketsCount\":3,\"tickets\":[\"6143\",\"6938\",\"5017\"],\"createdAt\":\"2026-10-15T07:17:10.826Z\"}",
+      "status": "pendente",
+      "data_envio": "2026-10-15T07:17:10.826+00:00"
+    }
+  ],
+  "afiliados": [
+    {
+      "id": "abb024d4-6700-4926-84ff-f009cf3f7bc1",
+      "email": "test_status@sorte.com",
+      "document_number": "99988877766",
+      "exclusive_code": "STAT-1234",
+      "status": "qualquer_coisa"
+    },
+    {
+      "id": "fcb24ee6-d784-42d1-9aa1-719953a493ba",
+      "email": "afiliado_teste_1791302962323@teste.com",
+      "document_number": "38927163829",
+      "exclusive_code": "AFIL-9988",
+      "status": "cancelado"
+    },
+    {
+      "id": "9dce1524-41c6-4b83-a378-354ef0fcfc96",
+      "email": "deleted_9dce1524-41c6-4b83-a378-354ef0fcfc96@sorte.com",
+      "document_number": "00000000000",
+      "exclusive_code": "DEL-9dce",
+      "status": "aprovado"
+    },
+    {
+      "id": "61a20b9c-fb98-4b6c-b7f3-7a52822a29bc",
+      "email": "firmezinha1@hotmail.com",
+      "document_number": "28803773827",
+      "exclusive_code": "FLAV-5860",
+      "status": "aprovado#pwd:Enzo010216"
+    },
+    {
+      "id": "5a7287b8-256f-479f-a005-098f263a73ce",
+      "email": "test_link@sorte.com",
+      "document_number": "11122233344",
+      "exclusive_code": "LINK-1234",
+      "status": "aprovado"
+    },
+    {
+      "id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "email": "mariovieira071286@gmail.com",
+      "document_number": "33693683824",
+      "exclusive_code": "MARI-7996",
+      "status": "aprovado#pwd:Nicolas2024@"
+    },
+    {
+      "id": "4db9596a-2cda-4f0f-b9bd-5364cd371f8c",
+      "email": "queilatamires80@gmail.com",
+      "document_number": "12173060481",
+      "exclusive_code": "QUEI-2032",
+      "status": "aprovado#pwd:88141270Feio"
+    },
+    {
+      "id": "4c4f7aaa-ccbd-4ae3-9535-78f01f60db0d",
+      "email": "jardeljaniocassiano5@gmail.com",
+      "document_number": "32524260801",
+      "exclusive_code": "JARD-1161",
+      "status": "aprovado#pwd:#Amor1010"
+    }
+  ],
+  "afiliados_links": [
+    {
+      "id": "eecca770-83d6-40fe-a5fd-a8094a278ca9",
+      "affiliate_id": "5a7287b8-256f-479f-a005-098f263a73ce",
+      "affiliate_code": "LINK-1234"
+    },
+    {
+      "id": "26a112a2-fc57-4541-8514-66d99c478b29",
+      "affiliate_id": "61a20b9c-fb98-4b6c-b7f3-7a52822a29bc",
+      "affiliate_code": "FLAV-5860"
+    },
+    {
+      "id": "29caf666-afdd-473c-ac65-2642c53ce9cf",
+      "affiliate_id": "1ad9975d-7abd-4aa7-b35a-327e350444f3",
+      "affiliate_code": "MARI-7996"
+    },
+    {
+      "id": "2b29dcb7-2669-4b0b-ab9b-3b9cd2427315",
+      "affiliate_id": "4db9596a-2cda-4f0f-b9bd-5364cd371f8c",
+      "affiliate_code": "QUEI-2032"
+    },
+    {
+      "id": "e4066f2c-967f-46a8-95e5-3e4d4350cfd7",
+      "affiliate_id": "4c4f7aaa-ccbd-4ae3-9535-78f01f60db0d",
+      "affiliate_code": "JARD-1161"
+    }
+  ]
+}
