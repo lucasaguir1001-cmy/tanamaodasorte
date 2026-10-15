@@ -37,7 +37,10 @@ CREATE TABLE public.afiliados (
     privacy_accepted_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     approved_at TIMESTAMP WITH TIME ZONE,
-    approved_by TEXT
+    approved_by TEXT,
+    parent_affiliate_id TEXT,
+    parent_affiliate_code TEXT,
+    parent_affiliate_name TEXT
 );
 
 -- 2. Tabela public.afiliados_links
