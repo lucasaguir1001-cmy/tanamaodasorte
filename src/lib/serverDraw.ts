@@ -256,11 +256,56 @@ export class ServerDrawService {
           query = query.eq('sorteio_id', drawId);
         }
 
-        const { data, error } = await query;
+        let { data, error } = await query;
 
-        if (!error && data) {
+        // Fallback 1: se o join com usuario falhou no PostgREST, busca simples sem join
+        if (error || !data) {
+          let fallbackQuery = supabase
+            .from('bilhetes')
+            .select('*')
+            .eq('status_pagamento', true);
+
+          if (drawId) {
+            fallbackQuery = fallbackQuery.eq('sorteio_id', drawId);
+          }
+          const res = await fallbackQuery;
+          if (!res.error && res.data) {
+            data = res.data;
+            error = null;
+          }
+        }
+
+        // Fallback 2: se filtrou por drawId e não achou nenhum bilhete, busca todos os bilhetes confirmados ativos
+        if ((!data || data.length === 0) && drawId) {
+          const anyActive = await supabase
+            .from('bilhetes')
+            .select('*')
+            .eq('status_pagamento', true)
+            .order('data_compra', { ascending: false })
+            .limit(100);
+          if (!anyActive.error && anyActive.data && anyActive.data.length > 0) {
+            data = anyActive.data;
+          }
+        }
+
+        if (data && data.length > 0) {
+          // Preenche dados do usuário se não vieram pelo join
+          const userIds = [...new Set((data as Bilhete[]).map(b => b.usuario_id).filter(Boolean))];
+          let usersMap = new Map<string, Usuario>();
+          if (userIds.length > 0 && !(data[0] as any).usuario) {
+            try {
+              const { data: usersData } = await supabase.from('usuarios').select('*').in('id', userIds);
+              if (usersData) {
+                usersData.forEach(u => usersMap.set(u.id, u as Usuario));
+              }
+            } catch {}
+          }
+
           const map = new Map<string, Bilhete>();
           for (const b of data as Bilhete[]) {
+            if (!b.usuario && b.usuario_id && usersMap.has(b.usuario_id)) {
+              b.usuario = usersMap.get(b.usuario_id);
+            }
             if (!map.has(b.numero_milhar)) {
               map.set(b.numero_milhar, b);
             }

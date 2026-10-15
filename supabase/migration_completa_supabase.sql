@@ -43,8 +43,8 @@ CREATE TABLE public.sorteios (
 CREATE TABLE public.bilhetes (
     id TEXT PRIMARY KEY,
     numero_milhar VARCHAR(4) NOT NULL,
-    usuario_id TEXT NOT NULL,
-    sorteio_id TEXT,
+    usuario_id TEXT NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
+    sorteio_id TEXT REFERENCES public.sorteios(id) ON DELETE SET NULL,
     data_compra TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     status_pagamento BOOLEAN DEFAULT FALSE NOT NULL,
     payment_id TEXT,
