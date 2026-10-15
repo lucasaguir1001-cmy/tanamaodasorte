@@ -4,13 +4,34 @@ import { DatabaseService } from '@/lib/db';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { affiliateId, action, rejectionReason, approvedBy } = body;
+    const { affiliateId, action, rejectionReason, approvedBy, commissionRate, newRate } = body;
 
     if (!affiliateId || !action) {
       return NextResponse.json(
         { success: false, error: 'Parâmetros inválidos.' },
         { status: 400 }
       );
+    }
+
+    if (action === 'update_rate' || action === 'update_commission') {
+      const rateToSet = Number(commissionRate !== undefined ? commissionRate : newRate);
+      if (isNaN(rateToSet) || rateToSet <= 0) {
+        return NextResponse.json(
+          { success: false, error: 'Taxa de comissão inválida.' },
+          { status: 400 }
+        );
+      }
+      const result = await DatabaseService.updateAffiliateCommissionRate(affiliateId, rateToSet);
+      if (!result.success) {
+        return NextResponse.json(
+          { success: false, error: result.error || 'Erro ao atualizar comissão no banco de dados.' },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        message: `Comissão atualizada para ${(rateToSet * 100).toFixed(0)}% com sucesso.`
+      });
     }
 
     let status: 'aprovado' | 'recusado' | 'suspenso' | 'pendente' = 'pendente';

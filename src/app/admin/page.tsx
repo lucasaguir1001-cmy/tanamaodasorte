@@ -29,10 +29,13 @@ import {
   X,
   Trash2,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Share2,
+  Percent,
+  Check
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Usuario, Bilhete, Sorteio, Mensagem, SorteadoProgramado } from '@/types';
+import { Usuario, Bilhete, Sorteio, Mensagem, SorteadoProgramado, Affiliate } from '@/types';
 import { AppStore } from '@/lib/storage';
 import { sounds } from '@/lib/sound';
 import { generateWhatsAppWebLink, maskPhoneNumber } from '@/lib/whatsapp';
@@ -46,8 +49,14 @@ export default function AdminPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
 
-  // Aba ativa: 'overview' | 'sorteado' | 'tickets' | 'participants' | 'draw' | 'whatsapp' | 'database'
-  const [activeTab, setActiveTab] = useState<'overview' | 'sorteado' | 'tickets' | 'participants' | 'draw' | 'whatsapp' | 'database'>('overview');
+  // Aba ativa: 'overview' | 'sorteado' | 'tickets' | 'participants' | 'draw' | 'whatsapp' | 'database' | 'afiliados'
+  const [activeTab, setActiveTab] = useState<'overview' | 'sorteado' | 'tickets' | 'participants' | 'draw' | 'whatsapp' | 'database' | 'afiliados'>('overview');
+  const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
+  const [affiliateSearchTerm, setAffiliateSearchTerm] = useState('');
+  const [editingRateId, setEditingRateId] = useState<string | null>(null);
+  const [editingRateValue, setEditingRateValue] = useState<string>('15');
+  const [savingRateId, setSavingRateId] = useState<string | null>(null);
+  const [affiliateActionFeedback, setAffiliateActionFeedback] = useState<string | null>(null);
 
   // Dados do sistema
   const [participants, setParticipants] = useState<(Usuario & { total_bilhetes?: number })[]>([]);
@@ -149,10 +158,73 @@ export default function AdminPage() {
       } catch (sErr) {
         console.warn('Erro ao consultar sorteado programado:', sErr);
       }
+
+      // 5. Carrega Afiliados da API
+      try {
+        const resAff = await fetch('/api/afiliados/list');
+        if (resAff.ok) {
+          const aData = await resAff.json();
+          if (aData.success && Array.isArray(aData.affiliates)) {
+            setAffiliates(aData.affiliates);
+          }
+        }
+      } catch (aErr) {
+        console.warn('Erro ao carregar afiliados:', aErr);
+      }
     } catch (err) {
       console.error('Erro ao carregar dados do admin:', err);
     } finally {
       setLoadingData(false);
+    }
+  };
+
+  // Atualiza taxa de comissão do afiliado diretamente pelo admin
+  const handleUpdateCommission = async (affiliateId: string, percentValue: number) => {
+    if (isNaN(percentValue) || percentValue <= 0) return;
+    setSavingRateId(affiliateId);
+    setAffiliateActionFeedback(null);
+    try {
+      const decimalRate = percentValue / 100;
+      const res = await fetch('/api/afiliados/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          affiliateId,
+          action: 'update_rate',
+          commissionRate: decimalRate
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao salvar comissão');
+      }
+      setAffiliateActionFeedback(`Comissão atualizada para ${percentValue}% com sucesso!`);
+      setAffiliates(prev => prev.map(a => a.id === affiliateId ? { ...a, commissionRate: decimalRate } : a));
+      setEditingRateId(null);
+    } catch (err: any) {
+      setAffiliateActionFeedback(`Erro: ${err.message || 'Falha na conexão'}`);
+    } finally {
+      setSavingRateId(null);
+      setTimeout(() => setAffiliateActionFeedback(null), 4000);
+    }
+  };
+
+  // Atualiza status do afiliado (aprovação/suspensão)
+  const handleUpdateAffiliateStatus = async (affiliateId: string, action: 'approve' | 'suspend' | 'reactivate') => {
+    try {
+      const res = await fetch('/api/afiliados/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ affiliateId, action })
+      });
+      if (res.ok) {
+        const nextStatus = (action === 'approve' || action === 'reactivate') ? 'aprovado' : 'suspenso';
+        setAffiliates(prev => prev.map(a => a.id === affiliateId ? { ...a, status: nextStatus } : a));
+        setAffiliateActionFeedback(`Status atualizado com sucesso!`);
+        setTimeout(() => setAffiliateActionFeedback(null), 3000);
+      }
+    } catch (err) {
+      console.warn('Erro ao atualizar status do afiliado:', err);
     }
   };
 
@@ -571,6 +643,18 @@ export default function AdminPage() {
           >
             <Database className="w-4 h-4" />
             <span>Banco Supabase</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('afiliados')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors ${
+              activeTab === 'afiliados'
+                ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                : 'bg-slate-900/60 text-slate-400 hover:text-white'
+            }`}
+          >
+            <Share2 className="w-4 h-4 text-amber-400" />
+            <span>Afiliados ({affiliates.length})</span>
           </button>
         </div>
 
@@ -1487,6 +1571,278 @@ ALTER TABLE usuarios DISABLE ROW LEVEL SECURITY;
 ALTER TABLE bilhetes DISABLE ROW LEVEL SECURITY;
 ALTER TABLE sorteios DISABLE ROW LEVEL SECURITY;
 ALTER TABLE mensagens DISABLE ROW LEVEL SECURITY;`}</pre>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ==========================================
+            ABA 6: GESTÃO DE AFILIADOS & COMISSÕES
+        ========================================== */}
+        {activeTab === 'afiliados' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+
+            {/* Top Bar with Link to Portal */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <Share2 className="w-5 h-5 text-amber-400" />
+                  Rede de Afiliados e Comissões
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Altere a porcentagem de comissão de cada afiliado, aprove cadastros e monitore vendas em tempo real.
+                </p>
+              </div>
+              <a
+                href="/afiliados/admin"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs rounded-xl shadow-md shadow-amber-500/20 transition-all shrink-0"
+              >
+                <span>Portal Completo de Afiliados</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            {/* Notification / Feedback Banner */}
+            {affiliateActionFeedback && (
+              <div className={`p-4 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in ${
+                affiliateActionFeedback.includes('sucesso') 
+                  ? 'bg-emerald-950/80 border border-emerald-500 text-emerald-300' 
+                  : 'bg-rose-950/80 border border-rose-500 text-rose-300'
+              }`}>
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{affiliateActionFeedback}</span>
+              </div>
+            )}
+
+            {/* Metrics cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Total de Afiliados</span>
+                <span className="text-xl sm:text-2xl font-black text-white">{affiliates.length}</span>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Aprovados</span>
+                <span className="text-xl sm:text-2xl font-black text-emerald-400">
+                  {affiliates.filter(a => a.status === 'aprovado').length}
+                </span>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Pendentes</span>
+                <span className="text-xl sm:text-2xl font-black text-amber-400">
+                  {affiliates.filter(a => a.status === 'pendente').length}
+                </span>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Total de Vendas Rede</span>
+                <span className="text-xl sm:text-2xl font-black text-cyan-400">
+                  {affiliates.reduce((acc, a) => acc + (a.totalConversions || 0), 0)}
+                </span>
+              </div>
+            </div>
+
+            {/* Filter and Table Card */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar afiliado por nome, CPF, código ou e-mail..."
+                    value={affiliateSearchTerm}
+                    onChange={(e) => setAffiliateSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+                <button
+                  onClick={async () => {
+                    const res = await fetch('/api/afiliados/list');
+                    if (res.ok) {
+                      const d = await res.json();
+                      if (d.success && d.affiliates) setAffiliates(d.affiliates);
+                    }
+                  }}
+                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Atualizar</span>
+                </button>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-slate-800 text-slate-400 uppercase font-mono text-[10px]">
+                    <tr>
+                      <th className="pb-3 font-semibold">Afiliado</th>
+                      <th className="pb-3 font-semibold">Código</th>
+                      <th className="pb-3 font-semibold">WhatsApp</th>
+                      <th className="pb-3 font-semibold">Vendas / Cliques</th>
+                      <th className="pb-3 font-semibold text-center">Status</th>
+                      <th className="pb-3 font-semibold text-center">Comissão (%)</th>
+                      <th className="pb-3 font-semibold text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-sans">
+                    {affiliates.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-slate-500">
+                          Nenhum afiliado cadastrado ainda.
+                        </td>
+                      </tr>
+                    ) : (
+                      affiliates
+                        .filter(a => {
+                          const term = affiliateSearchTerm.toLowerCase().trim();
+                          if (!term) return true;
+                          return (
+                            a.fullName.toLowerCase().includes(term) ||
+                            a.email.toLowerCase().includes(term) ||
+                            a.exclusiveCode.toLowerCase().includes(term) ||
+                            a.documentNumber.includes(term.replace(/\D/g, ''))
+                          );
+                        })
+                        .map(a => {
+                          const isEditing = editingRateId === a.id;
+                          const isSaving = savingRateId === a.id;
+                          const currentRatePct = Math.round((a.commissionRate || 0.15) * 100);
+                          const cleanPhone = (a.whatsapp || a.phone || '').replace(/\D/g, '');
+
+                          return (
+                            <tr key={a.id} className="hover:bg-slate-800/30 transition-colors">
+                              {/* Nome & Email */}
+                              <td className="py-3">
+                                <span className="font-bold text-white block">{a.fullName}</span>
+                                <span className="text-[11px] text-slate-400">{a.email}</span>
+                              </td>
+
+                              {/* Código */}
+                              <td className="py-3 font-mono">
+                                <span className="font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                  {a.exclusiveCode}
+                                </span>
+                              </td>
+
+                              {/* WhatsApp */}
+                              <td className="py-3 font-mono">
+                                {cleanPhone ? (
+                                  <a
+                                    href={`https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(`Olá ${a.fullName}, aqui é da equipe do Tá Na Mão da SORTE!`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-emerald-400 hover:underline flex items-center gap-1"
+                                  >
+                                    <span>{a.whatsapp || a.phone}</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-500">-</span>
+                                )}
+                              </td>
+
+                              {/* Vendas / Cliques */}
+                              <td className="py-3 font-mono text-slate-300">
+                                <span className="text-emerald-400 font-bold">{a.totalConversions || 0}</span> vendas / <span className="text-cyan-400">{a.totalClicks || 0}</span> clicks
+                              </td>
+
+                              {/* Status */}
+                              <td className="py-3 text-center">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  a.status === 'aprovado'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                    : a.status === 'pendente'
+                                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                    : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                }`}>
+                                  {a.status}
+                                </span>
+                              </td>
+
+                              {/* COMISSÃO EDITÁVEL */}
+                              <td className="py-3 text-center">
+                                {isEditing ? (
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    <div className="relative w-16">
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="80"
+                                        value={editingRateValue}
+                                        onChange={(e) => setEditingRateValue(e.target.value)}
+                                        className="w-full px-2 py-1 bg-slate-950 border border-amber-400 rounded-lg text-xs text-white text-center font-bold focus:outline-none"
+                                        disabled={isSaving}
+                                      />
+                                      <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-amber-400 font-bold">%</span>
+                                    </div>
+                                    <button
+                                      onClick={() => handleUpdateCommission(a.id, Number(editingRateValue))}
+                                      disabled={isSaving}
+                                      className="p-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                                      title="Salvar nova comissão"
+                                    >
+                                      {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                    </button>
+                                    <button
+                                      onClick={() => setEditingRateId(null)}
+                                      disabled={isSaving}
+                                      className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg text-xs transition-all cursor-pointer"
+                                      title="Cancelar"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setEditingRateId(a.id);
+                                      setEditingRateValue(currentRatePct.toString());
+                                    }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 hover:bg-amber-500/20 border border-emerald-500/30 hover:border-amber-400 text-emerald-400 hover:text-amber-300 rounded-lg font-mono font-bold transition-all cursor-pointer group"
+                                    title="Clique para alterar a comissão deste afiliado"
+                                  >
+                                    <span>{currentRatePct}%</span>
+                                    <Percent className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+                                  </button>
+                                )}
+                              </td>
+
+                              {/* AÇÕES DE STATUS */}
+                              <td className="py-3 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {a.status === 'pendente' && (
+                                    <button
+                                      onClick={() => handleUpdateAffiliateStatus(a.id, 'approve')}
+                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                                    >
+                                      Aprovar
+                                    </button>
+                                  )}
+                                  {a.status === 'aprovado' && (
+                                    <button
+                                      onClick={() => handleUpdateAffiliateStatus(a.id, 'suspend')}
+                                      className="px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                                    >
+                                      Suspender
+                                    </button>
+                                  )}
+                                  {a.status === 'suspenso' && (
+                                    <button
+                                      onClick={() => handleUpdateAffiliateStatus(a.id, 'reactivate')}
+                                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                                    >
+                                      Reativar
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
 

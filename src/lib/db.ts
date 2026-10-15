@@ -1174,6 +1174,72 @@ export class DatabaseService {
   }
 
   /**
+   * Atualiza a taxa de comissão de um afiliado (ex: 0.15 para 15%, 0.20 para 20%)
+   */
+  static async updateAffiliateCommissionRate(
+    id: string,
+    newRate: number
+  ): Promise<{ success: boolean; error?: string }> {
+    const localDb = readLocalDb();
+    const cleanId = id.trim();
+    const validatedRate = Math.min(Math.max(Number(newRate), 0.01), 0.90);
+
+    // 1. Atualiza no banco local
+    const idx = (localDb.afiliados || []).findIndex(a =>
+      a.id === cleanId ||
+      a.email.toLowerCase() === cleanId.toLowerCase() ||
+      a.exclusiveCode.toUpperCase() === cleanId.toUpperCase()
+    );
+
+    if (idx !== -1) {
+      localDb.afiliados[idx].commissionRate = validatedRate;
+      writeLocalDb(localDb);
+    }
+
+    // 2. Atualiza no Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+        let query = supabase.from('afiliados').select('id, exclusive_code, email');
+        if (isUuid) {
+          query = query.eq('id', cleanId);
+        } else {
+          query = query.or(`id.eq.${cleanId},exclusive_code.eq.${cleanId.toUpperCase()},email.ilike.${cleanId}`);
+        }
+
+        const { data: rows, error: selectErr } = await query.limit(1);
+
+        if (!selectErr && rows && rows.length > 0) {
+          const targetId = rows[0].id;
+          const { error: updateErr } = await supabase
+            .from('afiliados')
+            .update({ commission_rate: validatedRate })
+            .eq('id', targetId);
+
+          if (updateErr) {
+            console.error('Erro ao atualizar commission_rate no Supabase:', updateErr);
+            return { success: false, error: updateErr.message };
+          }
+        } else {
+          // Tenta atualizar direto pelo id fornecido caso não encontre na busca inicial
+          const { error: directErr } = await supabase
+            .from('afiliados')
+            .update({ commission_rate: validatedRate })
+            .eq('id', cleanId);
+          if (directErr) {
+            console.warn('Tentativa direta de atualizar rate no Supabase falhou:', directErr.message);
+          }
+        }
+      } catch (err: any) {
+        console.error('Erro ao salvar nova taxa de comissão no Supabase:', err);
+        return { success: false, error: err.message || 'Erro interno no banco de dados.' };
+      }
+    }
+
+    return { success: true };
+  }
+
+  /**
    * Registra a venda atribuída ao afiliado, calcula comissão e atualiza saldos
    */
   static async recordAffiliateSale(params: {

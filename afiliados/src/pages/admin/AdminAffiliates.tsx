@@ -33,6 +33,8 @@ export const AdminAffiliates: React.FC = () => {
   // Rate Edit Modal
   const [rateAffiliate, setRateAffiliate] = useState<Affiliate | null>(null);
   const [newRatePct, setNewRatePct] = useState('15');
+  const [savingRate, setSavingRate] = useState(false);
+  const [rateFeedback, setRateFeedback] = useState<string | null>(null);
 
   // Reject / Suspend Modal
   const [actionAffiliate, setActionAffiliate] = useState<{ aff: Affiliate; type: 'reject' | 'suspend' } | null>(null);
@@ -133,16 +135,49 @@ export const AdminAffiliates: React.FC = () => {
     }
   };
 
-  const handleSaveRate = (e: React.FormEvent) => {
+  const handleSaveRate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rateAffiliate) return;
     const rateDecimal = parseFloat(newRatePct) / 100;
+    if (isNaN(rateDecimal) || rateDecimal <= 0) return;
+
+    setSavingRate(true);
+    setRateFeedback(null);
+
+    // 1. Atualiza no MockDatabase local
     AdminService.updateAffiliateCommissionRate(rateAffiliate.id, rateDecimal);
+
+    // 2. Persiste no Supabase / Servidor
+    try {
+      const res = await fetch('/api/afiliados/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          affiliateId: rateAffiliate.id,
+          action: 'update_rate',
+          commissionRate: rateDecimal
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao salvar comissão no servidor');
+      }
+      setRateFeedback(`Comissão de ${rateAffiliate.fullName} atualizada para ${newRatePct}% com sucesso!`);
+    } catch (err: any) {
+      console.warn('Erro ao atualizar taxa de comissão no servidor:', err);
+      setRateFeedback(`Erro ao salvar no banco: ${err.message || 'Tente novamente'}`);
+    } finally {
+      setSavingRate(false);
+    }
+
     reloadAffiliates();
-    setRateAffiliate(null);
     if (selectedAffiliate?.id === rateAffiliate.id) {
       setSelectedAffiliate({ ...selectedAffiliate, commissionRate: rateDecimal });
     }
+    setTimeout(() => {
+      setRateAffiliate(null);
+      setRateFeedback(null);
+    }, 1200);
   };
 
   return (
@@ -322,6 +357,19 @@ export const AdminAffiliates: React.FC = () => {
 
             {/* Quick Actions in Modal */}
             <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-800">
+              <Button
+                type="button"
+                variant="amber"
+                onClick={() => {
+                  setRateAffiliate(selectedAffiliate);
+                  setNewRatePct((selectedAffiliate.commissionRate * 100).toString());
+                }}
+                className="w-full flex items-center justify-center gap-2 mb-2"
+              >
+                <Percent className="w-4 h-4" />
+                <span>Ajustar Taxa de Comissão (Atual: {(selectedAffiliate.commissionRate * 100).toFixed(0)}%)</span>
+              </Button>
+
               {selectedAffiliate.status === 'pendente' && (
                 <>
                   <Button
@@ -366,7 +414,12 @@ export const AdminAffiliates: React.FC = () => {
       {/* RATE ADJUSTMENT MODAL */}
       <Modal
         isOpen={Boolean(rateAffiliate)}
-        onClose={() => setRateAffiliate(null)}
+        onClose={() => {
+          if (!savingRate) {
+            setRateAffiliate(null);
+            setRateFeedback(null);
+          }
+        }}
         title="Personalizar Taxa de Comissão"
       >
         <form onSubmit={handleSaveRate} className="space-y-4 text-left">
@@ -377,25 +430,36 @@ export const AdminAffiliates: React.FC = () => {
           <Input
             label="Nova Taxa de Comissão (%)"
             type="number"
-            min="5"
-            max="50"
+            min="1"
+            max="80"
             value={newRatePct}
             onChange={(e) => setNewRatePct(e.target.value)}
             helperText="Ex: 20 para 20%, 25 para parceiros VIP."
+            disabled={savingRate}
             required
           />
+
+          {rateFeedback && (
+            <div className={`p-2.5 rounded-xl text-xs font-bold text-center ${rateFeedback.includes('sucesso') ? 'bg-emerald-950/80 border border-emerald-500 text-emerald-300' : 'bg-rose-950/80 border border-rose-500 text-rose-300'}`}>
+              {rateFeedback}
+            </div>
+          )}
 
           <div className="flex gap-2 pt-2">
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setRateAffiliate(null)}
+              onClick={() => {
+                setRateAffiliate(null);
+                setRateFeedback(null);
+              }}
               className="flex-1"
+              disabled={savingRate}
             >
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1">
-              Salvar Taxa
+            <Button type="submit" className="flex-1" disabled={savingRate}>
+              {savingRate ? 'Salvando...' : 'Salvar Taxa'}
             </Button>
           </div>
         </form>
