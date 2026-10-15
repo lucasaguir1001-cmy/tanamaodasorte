@@ -726,7 +726,10 @@ export class DatabaseService {
           total_conversions: affiliate.totalConversions,
           terms_accepted_at: affiliate.termsAcceptedAt,
           privacy_accepted_at: affiliate.privacyAcceptedAt,
-          created_at: affiliate.createdAt
+          created_at: affiliate.createdAt,
+          parent_affiliate_id: affiliate.parentAffiliateId || null,
+          parent_affiliate_code: affiliate.parentAffiliateCode || null,
+          parent_affiliate_name: affiliate.parentAffiliateName || null
         });
 
         if (fullInsert.error) {

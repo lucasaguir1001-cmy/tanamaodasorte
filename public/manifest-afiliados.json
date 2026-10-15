@@ -1,0 +1,35 @@
+{
+  "name": "Tá Na Mão da SORTE | Afiliados",
+  "short_name": "TNS Afiliados",
+  "description": "Painel Oficial de Afiliados do Tá Na Mão da SORTE. Acompanhe cliques, conversões, comissões em tempo real e solicite saques Pix instantâneos!",
+  "id": "/afiliados",
+  "start_url": "/afiliados?source=pwa_afiliados",
+  "scope": "/afiliados",
+  "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
+  "background_color": "#020617",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "business"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/afiliados-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/afiliados-icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/afiliados-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

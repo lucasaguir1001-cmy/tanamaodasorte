@@ -5,14 +5,23 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const parent = searchParams.get('parent')?.trim().toUpperCase();
+    const parentId = searchParams.get('parentId')?.trim();
 
     let affiliates = await DatabaseService.getAffiliates();
 
-    if (parent) {
-      affiliates = affiliates.filter(a =>
-        (a.parentAffiliateCode && a.parentAffiliateCode.toUpperCase() === parent) ||
-        (a.parentAffiliateId && a.parentAffiliateId.toUpperCase() === parent)
-      );
+    if (parent || parentId) {
+      affiliates = affiliates.filter(a => {
+        const pCode = (a.parentAffiliateCode || '').trim().toUpperCase();
+        const pId = (a.parentAffiliateId || '').trim();
+        const strat = (a.promotionStrategy || '').toUpperCase();
+
+        const matchCode = Boolean(parent && pCode && pCode === parent);
+        const matchId = Boolean(parent && pId && pId.toUpperCase() === parent);
+        const matchExplicitId = Boolean(parentId && pId && pId.toLowerCase() === parentId.toLowerCase());
+        const matchStrategy = Boolean(parent && strat && strat.includes(parent));
+
+        return matchCode || matchId || matchExplicitId || matchStrategy;
+      });
     }
 
     return NextResponse.json({

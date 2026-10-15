@@ -73,7 +73,7 @@ export const SubAffiliatesPage: React.FC = () => {
 
     try {
       // 1. Fetch from server API
-      const res = await fetch(`/api/afiliados/list?parent=${encodeURIComponent(code)}`);
+      const res = await fetch(`/api/afiliados/list?parent=${encodeURIComponent(code)}&parentId=${encodeURIComponent(id)}`);
       const data = await res.json();
 
       let fetchedSubs: Affiliate[] = [];
@@ -84,7 +84,8 @@ export const SubAffiliatesPage: React.FC = () => {
       // Merge with local storage cache
       const localSubs = MockDatabase.getAffiliates().filter(
         a => (a.parentAffiliateCode && a.parentAffiliateCode.toUpperCase() === code.toUpperCase()) ||
-             (a.parentAffiliateId && a.parentAffiliateId === id)
+             (a.parentAffiliateId && a.parentAffiliateId === id) ||
+             (a.promotionStrategy && a.promotionStrategy.toUpperCase().includes(code.toUpperCase()))
       );
 
       const mergedMap = new Map<string, Affiliate>();
@@ -114,7 +115,8 @@ export const SubAffiliatesPage: React.FC = () => {
       // Fallback
       const localSubs = MockDatabase.getAffiliates().filter(
         a => (a.parentAffiliateCode && a.parentAffiliateCode.toUpperCase() === code.toUpperCase()) ||
-             (a.parentAffiliateId && a.parentAffiliateId === id)
+             (a.parentAffiliateId && a.parentAffiliateId === id) ||
+             (a.promotionStrategy && a.promotionStrategy.toUpperCase().includes(code.toUpperCase()))
       );
       setSubAffiliates(localSubs);
     }

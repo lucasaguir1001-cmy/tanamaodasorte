@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { MockDatabase } from '../../services/mockData';
 import { AffiliateService } from '../../services/affiliateService';
 import { SystemNotification } from '../../types';
-import { Bell, LogOut, User, ShieldCheck, CheckCheck } from 'lucide-react';
+import { Bell, LogOut, User, ShieldCheck, CheckCheck, Download } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { currentUser, currentAffiliate, logout } = useAuth();
@@ -79,6 +79,20 @@ export const Header: React.FC = () => {
 
           {/* Action / User Bar */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Botão Instalar App Afiliados */}
+            <button
+              onClick={() => {
+                if (window.triggerAfiliadosPwaInstall) {
+                  window.triggerAfiliadosPwaInstall();
+                }
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
+              title="Instalar Aplicativo de Afiliados no Celular"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Instalar App</span>
+            </button>
+
             {currentUser ? (
               <>
                 {/* Notification Dropdown */}

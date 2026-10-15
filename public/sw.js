@@ -2,11 +2,16 @@ const CACHE_NAME = 'tanamao-pwa-v2';
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',
+  '/manifest-afiliados.json',
   '/favicon.png',
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable.png',
-  '/apple-touch-icon.png'
+  '/apple-touch-icon.png',
+  '/afiliados-icon-192.png',
+  '/afiliados-icon-512.png',
+  '/afiliados-icon-maskable.png',
+  '/afiliados-apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {

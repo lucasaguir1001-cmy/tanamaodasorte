@@ -25,6 +25,7 @@ import { AdminPayouts } from './pages/admin/AdminPayouts';
 import { AdminMaterials } from './pages/admin/AdminMaterials';
 import { AdminSettings } from './pages/admin/AdminSettings';
 import { AdminAuditLogs } from './pages/admin/AdminAuditLogs';
+import { PwaInstallPrompt } from './components/common/PwaInstallPrompt';
 
 export const App: React.FC = () => {
   useEffect(() => {
@@ -34,6 +35,7 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
+      <PwaInstallPrompt />
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}

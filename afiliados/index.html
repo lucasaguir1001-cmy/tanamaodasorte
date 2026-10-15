@@ -3,12 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#059669" />
+    <meta name="theme-color" content="#0f172a" />
     <title>Programa de Afiliados | Tá Na Mão da SORTE</title>
     <meta name="description" content="Ganhe até 25% de comissão divulgando o Tá Na Mão da SORTE! Sorteios diários às 19h, Pix instantâneo e acompanhamento em tempo real." />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+
+    <!-- PWA Afiliados Meta Tags & Manifest -->
+    <link rel="manifest" href="/manifest-afiliados.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="TNS Afiliados" />
+    <link rel="apple-touch-icon" href="/afiliados-apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/afiliados-icon-192.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -18,6 +28,11 @@
           names.forEach(function(name) {
             if (name.includes('tanamao-pwa-v1')) caches.delete(name);
           });
+        });
+      }
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
         });
       }
     </script>
