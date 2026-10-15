@@ -837,7 +837,7 @@ export class ServerDrawService {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from('sorteios')
           .select('*, ganhador:usuarios(*)')
           .eq('status', 'finalizado')
@@ -845,7 +845,18 @@ export class ServerDrawService {
           .order('data_sorteio', { ascending: false })
           .limit(1);
 
-        if (!error && data && data.length > 0) {
+        if (error) {
+          const fallback = await supabase
+            .from('sorteios')
+            .select('*')
+            .eq('status', 'finalizado')
+            .not('numeros_sorteados', 'is', null)
+            .order('data_sorteio', { ascending: false })
+            .limit(1);
+          data = fallback.data;
+        }
+
+        if (data && data.length > 0) {
           lastDraw = data[0] as Sorteio;
         }
       } catch (e) {
