@@ -69,6 +69,7 @@ export const DashboardHome: React.FC = () => {
             allAffs.unshift(data.affiliate);
           }
           MockDatabase.saveAffiliates(allAffs);
+          localStorage.setItem('tns_current_affiliate', JSON.stringify({ ...affiliate, ...data.affiliate }));
           refreshAffiliate();
         }
       }

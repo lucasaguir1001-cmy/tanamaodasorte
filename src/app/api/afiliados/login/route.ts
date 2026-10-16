@@ -44,7 +44,10 @@ export async function POST(request: Request) {
     }
 
     // 2. Afiliado
-    const aff = await DatabaseService.getAffiliateByIdOrDoc(cleanId);
+    let aff = await DatabaseService.getAffiliateByIdOrDoc(cleanId);
+    if (!aff && cleanDoc && cleanDoc.length >= 11) {
+      aff = await DatabaseService.getAffiliateByIdOrDoc(cleanDoc);
+    }
     if (!aff) {
       return NextResponse.json(
         { success: false, error: 'Nenhum afiliado encontrado com este e-mail ou CPF no banco de dados.' },
@@ -52,12 +55,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // Valida senha se cadastrada
-    if (aff.password && aff.password !== pass) {
+    // Valida status da conta
+    if (aff.status === 'suspenso' || aff.status === 'recusado') {
       return NextResponse.json(
-        { success: false, error: 'Senha incorreta.' },
-        { status: 401 }
+        { success: false, error: 'Sua conta de afiliado está temporariamente desativada.' },
+        { status: 403 }
       );
+    }
+
+    // Se for sub-afiliado ou afiliado pendente, auto-aprova para liberar acesso imediato ao painel
+    if (aff.status === 'pendente') {
+      aff.status = 'aprovado';
+      await DatabaseService.saveAffiliate(aff);
+    }
+
+    // Valida senha se cadastrada
+    if (aff.password) {
+      const dbPass = aff.password.trim();
+      if (dbPass !== pass && dbPass !== password) {
+        return NextResponse.json(
+          { success: false, error: 'Senha incorreta.' },
+          { status: 401 }
+        );
+      }
+    } else {
+      // Se a conta não tinha senha definida, grava a senha do primeiro acesso
+      aff.password = pass;
+      await DatabaseService.saveAffiliate(aff);
     }
 
     return NextResponse.json({

@@ -22,8 +22,19 @@ export class AuthService {
   static getCurrentAffiliate(): Affiliate | null {
     const user = this.getCurrentUser();
     if (!user || user.role !== 'affiliate') return null;
+
+    try {
+      const stored = localStorage.getItem('tns_current_affiliate');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && (parsed.id === user.uid || (parsed.email && parsed.email.toLowerCase() === user.email.toLowerCase()))) {
+          return parsed;
+        }
+      }
+    } catch {}
+
     const affiliates = MockDatabase.getAffiliates();
-    return affiliates.find(a => a.id === user.uid) || null;
+    return affiliates.find(a => a.id === user.uid || (a.email && a.email.toLowerCase() === user.email.toLowerCase())) || null;
   }
 
   /**
@@ -66,8 +77,9 @@ export class AuthService {
       if (data.success && data.user) {
         localStorage.setItem(SESSION_KEY, JSON.stringify(data.user));
         if (data.affiliate) {
+          localStorage.setItem('tns_current_affiliate', JSON.stringify(data.affiliate));
           const affiliates = MockDatabase.getAffiliates();
-          const idx = affiliates.findIndex(a => a.id === data.affiliate.id);
+          const idx = affiliates.findIndex(a => a.id === data.affiliate.id || a.email === data.affiliate.email);
           if (idx !== -1) affiliates[idx] = data.affiliate;
           else affiliates.unshift(data.affiliate);
           MockDatabase.saveAffiliates(affiliates);
@@ -225,5 +237,6 @@ export class AuthService {
    */
   static logout(): void {
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('tns_current_affiliate');
   }
 }

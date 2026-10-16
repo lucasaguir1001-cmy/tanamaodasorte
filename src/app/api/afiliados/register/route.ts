@@ -39,7 +39,10 @@ export async function POST(request: Request) {
     const cleanDoc = documentNumber.replace(/\D/g, '');
 
     // Verifica se já existe por e-mail ou documento
-    const existing = await DatabaseService.getAffiliateByIdOrDoc(cleanEmail);
+    let existing = await DatabaseService.getAffiliateByIdOrDoc(cleanEmail);
+    if (!existing && cleanDoc) {
+      existing = await DatabaseService.getAffiliateByIdOrDoc(cleanDoc);
+    }
     if (existing) {
       return NextResponse.json(
         { success: false, error: 'Este e-mail ou CPF/CNPJ já possui cadastro.' },
@@ -61,7 +64,7 @@ export async function POST(request: Request) {
       if (!isNaN(parsedRate)) {
         finalRate = parsedRate > 1 ? parsedRate / 100 : parsedRate;
       }
-    } else if (parentAff) {
+    } else if (parentAff || parentAffiliateCode) {
       finalRate = 0.10; // Padrão de 10% para sub-afiliados indicados
     }
 
@@ -69,6 +72,11 @@ export async function POST(request: Request) {
     const prefix = fullName.trim().split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4) || 'LUCK';
     const randNum = Math.floor(1000 + Math.random() * 9000);
     const code = `${prefix}-${randNum}`;
+
+    const nowIso = new Date().toISOString();
+    const resolvedParentCode = parentAff?.exclusiveCode || (parentAffiliateCode ? parentAffiliateCode.trim().toUpperCase() : undefined);
+    const resolvedParentId = parentAff?.id || (parentAffiliateId ? parentAffiliateId.trim() : undefined);
+    const resolvedParentName = parentAff?.fullName || undefined;
 
     const newAffiliate: Affiliate = {
       id: randomUUID(),
@@ -83,26 +91,26 @@ export async function POST(request: Request) {
       city: (city || '').trim(),
       state: (state || '').trim(),
       exclusiveCode: code,
-      // Se foi indicado diretamente por um afiliado ativo, já inicia aprovado
-      status: parentAff ? 'aprovado' : 'pendente',
+      // Todos os novos afiliados e parceiros já iniciam aprovados para poder divulgar imediatamente
+      status: 'aprovado',
       commissionRate: Number(finalRate.toFixed(4)),
       pixKeyType: pixKeyType || 'CPF',
       pixKey: (pixKey || '').trim(),
       socialChannels: (socialChannels || '').trim(),
-      promotionStrategy: (promotionStrategy || '').trim(),
+      promotionStrategy: (promotionStrategy || '').trim() || (resolvedParentCode ? `Indicado pelo Afiliado ${resolvedParentCode}` : ''),
       balanceAvailable: 0,
       balancePending: 0,
       balancePaid: 0,
       totalClicks: 0,
       totalConversions: 0,
-      parentAffiliateId: parentAff?.id,
-      parentAffiliateCode: parentAff?.exclusiveCode,
-      parentAffiliateName: parentAff?.fullName,
-      termsAcceptedAt: termsAcceptedAt || new Date().toISOString(),
-      privacyAcceptedAt: privacyAcceptedAt || new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      approvedAt: parentAff ? new Date().toISOString() : undefined,
-      approvedBy: parentAff ? `Afiliado Patrocinador: ${parentAff.exclusiveCode}` : undefined
+      parentAffiliateId: resolvedParentId,
+      parentAffiliateCode: resolvedParentCode,
+      parentAffiliateName: resolvedParentName,
+      termsAcceptedAt: termsAcceptedAt || nowIso,
+      privacyAcceptedAt: privacyAcceptedAt || nowIso,
+      createdAt: nowIso,
+      approvedAt: nowIso,
+      approvedBy: parentAff ? `Afiliado Patrocinador: ${parentAff.exclusiveCode}` : 'Sistema'
     };
 
     const result = await DatabaseService.saveAffiliate(newAffiliate);

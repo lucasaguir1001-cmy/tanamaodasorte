@@ -643,6 +643,95 @@ export class DatabaseService {
   }
 
   /**
+   * Codifica senha, patrocinador e comissão no campo status para persistência garantida em qualquer schema Supabase
+   */
+  static encodeAffiliateStatus(affiliate: Partial<Affiliate>): string {
+    const baseStatus = affiliate.status || 'aprovado';
+    let str = `${baseStatus}`;
+    if (affiliate.password) {
+      str += `#pwd:${affiliate.password}`;
+    }
+    if (affiliate.parentAffiliateCode) {
+      str += `#parent:${affiliate.parentAffiliateCode.trim().toUpperCase()}`;
+    }
+    if (affiliate.parentAffiliateId) {
+      str += `#pid:${affiliate.parentAffiliateId.trim()}`;
+    }
+    if (affiliate.parentAffiliateName) {
+      str += `#pname:${encodeURIComponent(affiliate.parentAffiliateName.trim())}`;
+    }
+    if (affiliate.commissionRate !== undefined && affiliate.commissionRate !== null) {
+      str += `#rate:${affiliate.commissionRate}`;
+    }
+    return str;
+  }
+
+  /**
+   * Decodifica status, senha, patrocinador e comissão codificados no campo status
+   */
+  static parseAffiliateStatus(statusStr: any): {
+    status: AffiliateStatus;
+    password?: string;
+    parentAffiliateCode?: string;
+    parentAffiliateId?: string;
+    parentAffiliateName?: string;
+    commissionRate?: number;
+  } {
+    if (!statusStr || typeof statusStr !== 'string') {
+      return { status: 'aprovado' };
+    }
+
+    const parts = statusStr.split('#');
+    let cleanStatus = (parts[0] || 'aprovado') as AffiliateStatus;
+    if (!['aprovado', 'pendente', 'recusado', 'suspenso', 'cancelado'].includes(cleanStatus)) {
+      cleanStatus = cleanStatus.toLowerCase().startsWith('aprov') ? 'aprovado' : 'pendente';
+    }
+
+    let password: string | undefined = undefined;
+    let parentAffiliateCode: string | undefined = undefined;
+    let parentAffiliateId: string | undefined = undefined;
+    let parentAffiliateName: string | undefined = undefined;
+    let commissionRate: number | undefined = undefined;
+
+    for (let i = 1; i < parts.length; i++) {
+      const chunk = parts[i];
+      if (chunk.startsWith('pwd:')) {
+        const rest = parts.slice(i).join('#');
+        const nextTagIdx = rest.search(/#(parent|pid|pname|rate):/);
+        if (nextTagIdx !== -1) {
+          password = rest.substring(4, nextTagIdx);
+        } else {
+          password = rest.substring(4);
+        }
+      } else if (chunk.startsWith('parent:')) {
+        parentAffiliateCode = chunk.substring(7).trim().toUpperCase();
+      } else if (chunk.startsWith('pid:')) {
+        parentAffiliateId = chunk.substring(4).trim();
+      } else if (chunk.startsWith('pname:')) {
+        try {
+          parentAffiliateName = decodeURIComponent(chunk.substring(6).trim());
+        } catch {
+          parentAffiliateName = chunk.substring(6).trim();
+        }
+      } else if (chunk.startsWith('rate:')) {
+        const parsed = parseFloat(chunk.substring(5).trim());
+        if (!isNaN(parsed) && parsed > 0) {
+          commissionRate = parsed > 1 ? parsed / 100 : parsed;
+        }
+      }
+    }
+
+    return {
+      status: cleanStatus,
+      password,
+      parentAffiliateCode,
+      parentAffiliateId,
+      parentAffiliateName,
+      commissionRate
+    };
+  }
+
+  /**
    * Salva um novo afiliado no banco de dados (Local JSON e Supabase)
    */
   static async saveAffiliate(affiliate: Affiliate): Promise<{ success: boolean; affiliate?: Affiliate; error?: string }> {
@@ -656,50 +745,56 @@ export class DatabaseService {
       affiliate.id = randomUUID();
     }
 
-    // Verifica duplicidade no banco local
-    if (localDb.afiliados.some(a => a.email.trim().toLowerCase() === cleanEmail)) {
-      return { success: false, error: 'Este e-mail já está cadastrado no sistema.' };
-    }
-    if (localDb.afiliados.some(a => a.documentNumber.replace(/\D/g, '') === cleanDoc)) {
-      return { success: false, error: 'Este CPF/CNPJ já possui cadastro ativo ou em análise.' };
+    // Se possui patrocinador vinculado, garante status 'aprovado' para permitir acesso imediato ao painel
+    if (affiliate.parentAffiliateCode || affiliate.parentAffiliateId) {
+      affiliate.status = 'aprovado';
+      if (!affiliate.approvedAt) affiliate.approvedAt = new Date().toISOString();
+      if (!affiliate.approvedBy) affiliate.approvedBy = `Patrocinador: ${affiliate.parentAffiliateCode || affiliate.parentAffiliateId}`;
     }
 
-    // Salva no banco local
-    localDb.afiliados.unshift(affiliate);
+    // Salva ou atualiza no banco local
+    if (!localDb.afiliados) localDb.afiliados = [];
+    const localIdx = localDb.afiliados.findIndex(a =>
+      a.id === affiliate.id ||
+      a.email.trim().toLowerCase() === cleanEmail ||
+      (cleanDoc && a.documentNumber.replace(/\D/g, '') === cleanDoc)
+    );
 
-    // Cria link padrão
-    const defaultLink: AffiliateLink = {
-      id: `link_${Date.now()}`,
-      affiliateId: affiliate.id,
-      affiliateCode: affiliate.exclusiveCode,
-      destinationPath: '/',
-      campaignName: 'padrao',
-      fullUrl: `https://tanamaodasorte.com.br/?afiliado=${affiliate.exclusiveCode}`,
-      clicksCount: 0,
-      conversionsCount: 0,
-      revenueGenerated: 0,
-      isActive: true,
-      createdAt: new Date().toISOString()
-    };
-    localDb.afiliados_links.unshift(defaultLink);
+    if (localIdx !== -1) {
+      localDb.afiliados[localIdx] = { ...localDb.afiliados[localIdx], ...affiliate };
+    } else {
+      localDb.afiliados.unshift(affiliate);
+    }
+
+    // Cria link padrão do afiliado se não existir
+    if (!localDb.afiliados_links) localDb.afiliados_links = [];
+    const existingLink = localDb.afiliados_links.find(l =>
+      l.affiliateId === affiliate.id || l.affiliateCode.toUpperCase() === affiliate.exclusiveCode.toUpperCase()
+    );
+    if (!existingLink) {
+      localDb.afiliados_links.unshift({
+        id: `link_${Date.now()}`,
+        affiliateId: affiliate.id,
+        affiliateCode: affiliate.exclusiveCode,
+        destinationPath: '/',
+        campaignName: 'padrao',
+        fullUrl: `https://tanamaodasorte.com.br/?afiliado=${affiliate.exclusiveCode}`,
+        clicksCount: 0,
+        conversionsCount: 0,
+        revenueGenerated: 0,
+        isActive: true,
+        createdAt: new Date().toISOString()
+      });
+    }
     writeLocalDb(localDb);
 
     // Sincroniza com Supabase se configurado
     if (isSupabaseConfigured && supabase) {
       try {
-        // Verifica se já existe por e-mail ou documento no Supabase
-        const { data: existingRows } = await supabase
-          .from('afiliados')
-          .select('id, email, document_number')
-          .or(`document_number.eq.${cleanDoc},email.ilike.${cleanEmail}`)
-          .limit(1);
-
-        if (existingRows && existingRows.length > 0) {
-          return { success: false, error: 'Este e-mail ou CPF/CNPJ já possui cadastro no banco de dados.' };
-        }
+        const encodedStatus = DatabaseService.encodeAffiliateStatus(affiliate);
 
         // 1. Tenta salvar na tabela 'afiliados' com todas as colunas
-        const fullInsert = await supabase.from('afiliados').insert({
+        const fullInsert = await supabase.from('afiliados').upsert({
           id: affiliate.id,
           full_name: affiliate.fullName,
           email: cleanEmail,
@@ -730,26 +825,39 @@ export class DatabaseService {
           parent_affiliate_id: affiliate.parentAffiliateId || null,
           parent_affiliate_code: affiliate.parentAffiliateCode || null,
           parent_affiliate_name: affiliate.parentAffiliateName || null
-        });
+        }, { onConflict: 'email' });
 
         if (fullInsert.error) {
-          console.warn('Tabela afiliados no Supabase operando com schema base. Gravando colunas essenciais:', fullInsert.error.message);
-          // Codifica a senha no campo status caso a coluna dedicada password ainda não tenha sido criada
-          const statusValue = affiliate.password ? `${affiliate.status}#pwd:${affiliate.password}` : affiliate.status;
-          const baseInsert = await supabase.from('afiliados').insert({
+          // Schema base de 5 colunas no Supabase: grava colunas essenciais codificando metadados no status
+          const baseInsert = await supabase.from('afiliados').upsert({
             id: affiliate.id,
             email: cleanEmail,
             document_number: cleanDoc,
             exclusive_code: affiliate.exclusiveCode,
-            status: statusValue
-          });
+            status: encodedStatus
+          }, { onConflict: 'email' });
 
           if (baseInsert.error) {
-            console.error('Erro ao inserir registro base em afiliados no Supabase:', baseInsert.error);
+            console.error('Erro ao gravar afiliado base no Supabase:', baseInsert.error);
           }
         }
 
-        // 2. Salva em 'usuarios' para garantir persistência do nome, cpf e whatsapp na nuvem
+        // 2. Grava perfil completo em 'mensagens' (garante persistência de 100% dos dados mesmo em ambiente serverless)
+        try {
+          await supabase.from('mensagens').upsert({
+            id: `aff_meta_${affiliate.id}`,
+            destinatario_id: affiliate.id,
+            telefone: cleanDoc || '00000000000',
+            tipo: 'afiliado_perfil',
+            conteudo: JSON.stringify(affiliate),
+            status: affiliate.status,
+            data_envio: affiliate.createdAt
+          });
+        } catch (mErr) {
+          console.warn('Erro ao sincronizar aff_meta no Supabase:', mErr);
+        }
+
+        // 3. Salva em 'usuarios' para garantir persistência do nome, cpf e whatsapp na nuvem
         try {
           const { data: existingUser } = await supabase.from('usuarios').select('id').eq('cpf', cleanDoc).maybeSingle();
           if (existingUser && existingUser.id) {
@@ -770,14 +878,14 @@ export class DatabaseService {
           console.warn('Erro ao sincronizar afiliado na tabela usuarios:', uErr);
         }
 
-        // 3. Salva link em 'afiliados_links'
+        // 4. Salva link em 'afiliados_links'
         try {
           const linkUid = randomUUID();
-          await supabase.from('afiliados_links').insert({
+          await supabase.from('afiliados_links').upsert({
             id: linkUid,
             affiliate_id: affiliate.id,
             affiliate_code: affiliate.exclusiveCode
-          });
+          }, { onConflict: 'affiliate_id' });
         } catch (lErr) {
           console.warn('Erro ao inserir afiliados_links:', lErr);
         }
@@ -801,34 +909,58 @@ export class DatabaseService {
           .order('created_at', { ascending: false });
 
         if (error && error.code === '42703') {
-          // Se a coluna created_at não existir no Supabase, consulta sem ordenação por created_at
+          // Se a coluna created_at não existir no Supabase, consulta sem ordenação
           const fallback = await supabase.from('afiliados').select('*');
           data = fallback.data;
           error = fallback.error;
         }
 
+        // Carrega também metadados detalhados de 'mensagens' se existirem
+        const metaMap = new Map<string, any>();
+        try {
+          const { data: metaRows } = await supabase
+            .from('mensagens')
+            .select('conteudo')
+            .eq('tipo', 'afiliado_perfil');
+
+          if (metaRows) {
+            metaRows.forEach(r => {
+              try {
+                if (r.conteudo) {
+                  const parsed = JSON.parse(r.conteudo);
+                  if (parsed && (parsed.id || parsed.exclusiveCode || parsed.email)) {
+                    if (parsed.id) metaMap.set(parsed.id, parsed);
+                    if (parsed.exclusiveCode) metaMap.set(parsed.exclusiveCode.toUpperCase(), parsed);
+                    if (parsed.email) metaMap.set(parsed.email.toLowerCase(), parsed);
+                    if (parsed.documentNumber) metaMap.set(parsed.documentNumber.replace(/\D/g, ''), parsed);
+                  }
+                }
+              } catch {}
+            });
+          }
+        } catch {}
+
         if (!error && data && data.length > 0) {
           const localDb = readLocalDb();
+          const allCommissions = await this.getCommissions('all');
+
           return data
             .filter((row: any) => row.status !== 'cancelado')
             .map((row: any) => {
-              let statusStr: AffiliateStatus = (row.status as any) || 'pendente';
-              let extractedPassword = row.password || '';
-              if (typeof row.status === 'string' && row.status.includes('#pwd:')) {
-                const parts = row.status.split('#pwd:');
-                statusStr = parts[0] as AffiliateStatus;
-                extractedPassword = parts[1];
-              }
+              const parsed = DatabaseService.parseAffiliateStatus(row.status);
+              const meta = metaMap.get(row.id) ||
+                metaMap.get((row.exclusive_code || '').toUpperCase()) ||
+                metaMap.get((row.email || '').toLowerCase()) ||
+                metaMap.get((row.document_number || '').replace(/\D/g, ''));
 
               const localAff = (localDb.afiliados || []).find(a =>
                 a.id === row.id ||
-                a.email.toLowerCase() === row.email.toLowerCase() ||
+                a.email.toLowerCase() === (row.email || '').toLowerCase() ||
                 (row.document_number && a.documentNumber.replace(/\D/g, '') === row.document_number)
               );
 
-              const allCommissions = localDb.comissoes || [];
-              const affCode = (row.exclusive_code || localAff?.exclusiveCode || '').toUpperCase();
-              const affId = (row.id || localAff?.id || '').toUpperCase();
+              const affCode = (row.exclusive_code || meta?.exclusiveCode || localAff?.exclusiveCode || '').toUpperCase();
+              const affId = (row.id || meta?.id || localAff?.id || '').toUpperCase();
               const affComms = allCommissions.filter(c =>
                 (c.affiliateId && c.affiliateId.toUpperCase() === affId) ||
                 (c.affiliateCode && c.affiliateCode.toUpperCase() === affCode)
@@ -845,44 +977,56 @@ export class DatabaseService {
                 .reduce((acc, c) => acc + (c.commissionAmount || 0), 0);
               const dynamicConversions = affComms.filter(c => c.status !== 'cancelado' && c.status !== 'cancelada').length;
 
-              const finalPending = Math.max(Number(row.balance_pending ?? localAff?.balancePending ?? 0), Number(dynamicPending.toFixed(2)));
-              const finalAvailable = Math.max(Number(row.balance_available ?? localAff?.balanceAvailable ?? 0), Number(dynamicAvailable.toFixed(2)));
-              const finalPaid = Math.max(Number(row.balance_paid ?? localAff?.balancePaid ?? 0), Number(dynamicPaid.toFixed(2)));
-              const finalConversions = Math.max(Number(row.total_conversions ?? localAff?.totalConversions ?? 0), dynamicConversions);
+              const finalPending = Math.max(Number(row.balance_pending ?? meta?.balancePending ?? localAff?.balancePending ?? 0), Number(dynamicPending.toFixed(2)));
+              const finalAvailable = Math.max(Number(row.balance_available ?? meta?.balanceAvailable ?? localAff?.balanceAvailable ?? 0), Number(dynamicAvailable.toFixed(2)));
+              const finalPaid = Math.max(Number(row.balance_paid ?? meta?.balancePaid ?? localAff?.balancePaid ?? 0), Number(dynamicPaid.toFixed(2)));
+              const finalConversions = Math.max(Number(row.total_conversions ?? meta?.totalConversions ?? localAff?.totalConversions ?? 0), dynamicConversions);
+
+              const resolvedParentCode = row.parent_affiliate_code || parsed.parentAffiliateCode || meta?.parentAffiliateCode || localAff?.parentAffiliateCode || undefined;
+              const resolvedParentId = row.parent_affiliate_id || parsed.parentAffiliateId || meta?.parentAffiliateId || localAff?.parentAffiliateId || undefined;
+              const resolvedParentName = row.parent_affiliate_name || parsed.parentAffiliateName || meta?.parentAffiliateName || localAff?.parentAffiliateName || undefined;
+
+              const resolvedRate = Number(
+                row.commission_rate ??
+                parsed.commissionRate ??
+                meta?.commissionRate ??
+                localAff?.commissionRate ??
+                (resolvedParentCode ? 0.10 : 0.15)
+              );
 
               return {
                 id: row.id,
-                fullName: row.full_name || row.fullName || localAff?.fullName || row.email.split('@')[0],
+                fullName: row.full_name || row.fullName || meta?.fullName || localAff?.fullName || row.email.split('@')[0],
                 email: row.email,
-                password: extractedPassword || localAff?.password || '',
+                password: row.password || parsed.password || meta?.password || localAff?.password || '',
                 documentType: row.document_type || localAff?.documentType || 'CPF',
-                documentNumber: row.document_number || row.documentNumber || localAff?.documentNumber || '',
-                phone: row.phone || localAff?.phone || '',
-                whatsapp: row.whatsapp || localAff?.whatsapp || '',
-                birthDate: row.birth_date || localAff?.birthDate,
-                city: row.city || localAff?.city || '',
-                state: row.state || localAff?.state || '',
-                exclusiveCode: row.exclusive_code || localAff?.exclusiveCode || 'LUCK-7777',
-                status: statusStr,
-                rejectionReason: row.rejection_reason || localAff?.rejectionReason,
-                commissionRate: Number(row.commission_rate ?? localAff?.commissionRate ?? 0.15),
+                documentNumber: row.document_number || row.documentNumber || meta?.documentNumber || localAff?.documentNumber || '',
+                phone: row.phone || meta?.phone || localAff?.phone || '',
+                whatsapp: row.whatsapp || meta?.whatsapp || localAff?.whatsapp || '',
+                birthDate: row.birth_date || meta?.birthDate || localAff?.birthDate,
+                city: row.city || meta?.city || localAff?.city || '',
+                state: row.state || meta?.state || localAff?.state || '',
+                exclusiveCode: affCode || 'LUCK-7777',
+                status: parsed.status || (row.status as any) || 'aprovado',
+                rejectionReason: row.rejection_reason || meta?.rejectionReason || localAff?.rejectionReason,
+                commissionRate: resolvedRate,
                 pixKeyType: row.pix_key_type || localAff?.pixKeyType || 'CPF',
-                pixKey: row.pix_key || localAff?.pixKey || row.document_number,
-                socialChannels: row.social_channels || localAff?.socialChannels || '',
-                promotionStrategy: row.promotion_strategy || localAff?.promotionStrategy || '',
+                pixKey: row.pix_key || meta?.pixKey || localAff?.pixKey || row.document_number,
+                socialChannels: row.social_channels || meta?.socialChannels || localAff?.socialChannels || '',
+                promotionStrategy: row.promotion_strategy || meta?.promotionStrategy || localAff?.promotionStrategy || (resolvedParentCode ? `Indicado pelo Afiliado ${resolvedParentCode}` : ''),
                 balanceAvailable: finalAvailable,
                 balancePending: finalPending,
                 balancePaid: finalPaid,
-                totalClicks: Number(row.total_clicks ?? localAff?.totalClicks ?? 0),
+                totalClicks: Number(row.total_clicks ?? meta?.totalClicks ?? localAff?.totalClicks ?? 0),
                 totalConversions: finalConversions,
-                termsAcceptedAt: row.terms_accepted_at || localAff?.termsAcceptedAt || new Date().toISOString(),
-                privacyAcceptedAt: row.privacy_accepted_at || localAff?.privacyAcceptedAt || new Date().toISOString(),
-                createdAt: row.created_at || localAff?.createdAt || new Date().toISOString(),
-                approvedAt: row.approved_at || localAff?.approvedAt,
-                approvedBy: row.approved_by || localAff?.approvedBy,
-                parentAffiliateId: row.parent_affiliate_id || localAff?.parentAffiliateId,
-                parentAffiliateCode: row.parent_affiliate_code || localAff?.parentAffiliateCode,
-                parentAffiliateName: row.parent_affiliate_name || localAff?.parentAffiliateName
+                termsAcceptedAt: row.terms_accepted_at || meta?.termsAcceptedAt || localAff?.termsAcceptedAt || new Date().toISOString(),
+                privacyAcceptedAt: row.privacy_accepted_at || meta?.privacyAcceptedAt || localAff?.privacyAcceptedAt || new Date().toISOString(),
+                createdAt: row.created_at || meta?.createdAt || localAff?.createdAt || new Date().toISOString(),
+                approvedAt: row.approved_at || meta?.approvedAt || localAff?.approvedAt || new Date().toISOString(),
+                approvedBy: row.approved_by || meta?.approvedBy || localAff?.approvedBy,
+                parentAffiliateId: resolvedParentId,
+                parentAffiliateCode: resolvedParentCode,
+                parentAffiliateName: resolvedParentName
               };
             });
         }
@@ -933,34 +1077,39 @@ export class DatabaseService {
       try {
         let query = supabase.from('afiliados').select('*');
         if (cleanDoc.length >= 11) {
-          query = query.or(`document_number.eq.${cleanDoc},email.ilike.${clean}`);
+          query = query.or(`document_number.eq.${cleanDoc},document_number.eq.${identifier.trim()},email.ilike.${clean},exclusive_code.eq.${identifier.trim().toUpperCase()}`);
         } else if (isUuid) {
-          query = query.or(`id.eq.${identifier},email.ilike.${clean}`);
+          query = query.or(`id.eq.${identifier.trim()},email.ilike.${clean},exclusive_code.eq.${identifier.trim().toUpperCase()}`);
         } else {
-          query = query.or(`email.ilike.${clean},exclusive_code.eq.${identifier.toUpperCase()}`);
+          query = query.or(`email.ilike.${clean},exclusive_code.eq.${identifier.trim().toUpperCase()},document_number.eq.${cleanDoc || clean}`);
         }
 
         const { data, error } = await query.limit(1);
         if (!error && data && data.length > 0) {
           const row = data[0];
+          const parsed = DatabaseService.parseAffiliateStatus(row.status);
 
-          // Extrai status limpo e senha se foi codificada no status
-          let statusStr: AffiliateStatus = (row.status as any) || 'pendente';
-          let extractedPassword = row.password || '';
-          if (typeof row.status === 'string' && row.status.includes('#pwd:')) {
-            const parts = row.status.split('#pwd:');
-            statusStr = parts[0] as AffiliateStatus;
-            if (!extractedPassword) {
-              extractedPassword = parts[1];
+          // Busca perfil salvo em mensagens para resgatar dados complementares
+          let meta: any = null;
+          try {
+            const { data: metaRow } = await supabase
+              .from('mensagens')
+              .select('conteudo')
+              .eq('tipo', 'afiliado_perfil')
+              .or(`id.eq.aff_meta_${row.id},destinatario_id.eq.${row.id}`)
+              .limit(1)
+              .maybeSingle();
+            if (metaRow && metaRow.conteudo) {
+              meta = JSON.parse(metaRow.conteudo);
             }
-          }
+          } catch {}
 
           // Busca dados complementares em 'usuarios' caso faltem na tabela base
-          let resolvedName = row.full_name || row.fullName || '';
-          let resolvedPhone = row.phone || '';
-          let resolvedWhatsapp = row.whatsapp || '';
+          let resolvedName = row.full_name || row.fullName || meta?.fullName || '';
+          let resolvedPhone = row.phone || meta?.phone || '';
+          let resolvedWhatsapp = row.whatsapp || meta?.whatsapp || '';
 
-          const docNumber = row.document_number || row.documentNumber || cleanDoc;
+          const docNumber = row.document_number || row.documentNumber || meta?.documentNumber || cleanDoc;
           if (docNumber) {
             try {
               const { data: userRow } = await supabase
@@ -986,8 +1135,8 @@ export class DatabaseService {
 
           // Calcula comissões dinâmicas do afiliado para garantir que nunca fiquem zeradas
           const allCommissions = await this.getCommissions('all');
-          const affCode = (row.exclusive_code || localAff?.exclusiveCode || clean).toUpperCase();
-          const affId = (row.id || localAff?.id || identifier).toUpperCase();
+          const affCode = (row.exclusive_code || meta?.exclusiveCode || localAff?.exclusiveCode || clean).toUpperCase();
+          const affId = (row.id || meta?.id || localAff?.id || identifier).toUpperCase();
           const affComms = allCommissions.filter(c =>
             (c.affiliateId && c.affiliateId.toUpperCase() === affId) ||
             (c.affiliateCode && c.affiliateCode.toUpperCase() === affCode)
@@ -1004,16 +1153,28 @@ export class DatabaseService {
             .reduce((acc, c) => acc + (c.commissionAmount || 0), 0);
           const dynamicConversions = affComms.filter(c => c.status !== 'cancelado' && c.status !== 'cancelada').length;
 
-          const finalPending = Math.max(Number(localAff?.balancePending ?? row.balance_pending ?? 0), Number(dynamicPending.toFixed(2)));
-          const finalAvailable = Math.max(Number(localAff?.balanceAvailable ?? row.balance_available ?? 0), Number(dynamicAvailable.toFixed(2)));
-          const finalPaid = Math.max(Number(localAff?.balancePaid ?? row.balance_paid ?? 0), Number(dynamicPaid.toFixed(2)));
-          const finalConversions = Math.max(Number(localAff?.totalConversions ?? row.total_conversions ?? 0), dynamicConversions);
+          const finalPending = Math.max(Number(localAff?.balancePending ?? meta?.balancePending ?? row.balance_pending ?? 0), Number(dynamicPending.toFixed(2)));
+          const finalAvailable = Math.max(Number(localAff?.balanceAvailable ?? meta?.balanceAvailable ?? row.balance_available ?? 0), Number(dynamicAvailable.toFixed(2)));
+          const finalPaid = Math.max(Number(localAff?.balancePaid ?? meta?.balancePaid ?? row.balance_paid ?? 0), Number(dynamicPaid.toFixed(2)));
+          const finalConversions = Math.max(Number(localAff?.totalConversions ?? meta?.totalConversions ?? row.total_conversions ?? 0), dynamicConversions);
+
+          const resolvedParentCode = row.parent_affiliate_code || parsed.parentAffiliateCode || meta?.parentAffiliateCode || localAff?.parentAffiliateCode || undefined;
+          const resolvedParentId = row.parent_affiliate_id || parsed.parentAffiliateId || meta?.parentAffiliateId || localAff?.parentAffiliateId || undefined;
+          const resolvedParentName = row.parent_affiliate_name || parsed.parentAffiliateName || meta?.parentAffiliateName || localAff?.parentAffiliateName || undefined;
+
+          const resolvedRate = Number(
+            row.commission_rate ??
+            parsed.commissionRate ??
+            meta?.commissionRate ??
+            localAff?.commissionRate ??
+            (resolvedParentCode ? 0.10 : 0.15)
+          );
 
           const resolvedAff: Affiliate = {
             id: row.id,
             fullName: resolvedName || localAff?.fullName || row.email.split('@')[0],
             email: row.email,
-            password: extractedPassword || localAff?.password || '',
+            password: row.password || parsed.password || meta?.password || localAff?.password || '',
             documentType: row.document_type || localAff?.documentType || 'CPF',
             documentNumber: docNumber,
             phone: resolvedPhone || localAff?.phone || '',
@@ -1021,27 +1182,27 @@ export class DatabaseService {
             birthDate: row.birth_date || localAff?.birthDate,
             city: row.city || localAff?.city || '',
             state: row.state || localAff?.state || '',
-            exclusiveCode: row.exclusive_code || localAff?.exclusiveCode || 'LUCK-7777',
-            status: statusStr,
-            rejectionReason: row.rejection_reason || localAff?.rejectionReason,
-            commissionRate: Number(row.commission_rate ?? localAff?.commissionRate ?? 0.15),
+            exclusiveCode: affCode,
+            status: parsed.status || (row.status as any) || 'aprovado',
+            rejectionReason: row.rejection_reason || meta?.rejectionReason || localAff?.rejectionReason,
+            commissionRate: resolvedRate,
             pixKeyType: row.pix_key_type || localAff?.pixKeyType || 'CPF',
-            pixKey: row.pix_key || localAff?.pixKey || docNumber,
-            socialChannels: row.social_channels || localAff?.socialChannels || '',
-            promotionStrategy: row.promotion_strategy || localAff?.promotionStrategy || '',
+            pixKey: row.pix_key || meta?.pixKey || localAff?.pixKey || docNumber,
+            socialChannels: row.social_channels || meta?.socialChannels || localAff?.socialChannels || '',
+            promotionStrategy: row.promotion_strategy || meta?.promotionStrategy || localAff?.promotionStrategy || (resolvedParentCode ? `Indicado pelo Afiliado ${resolvedParentCode}` : ''),
             balanceAvailable: finalAvailable,
             balancePending: finalPending,
             balancePaid: finalPaid,
-            totalClicks: Number(localAff?.totalClicks ?? row.total_clicks ?? 0),
+            totalClicks: Number(localAff?.totalClicks ?? meta?.totalClicks ?? row.total_clicks ?? 0),
             totalConversions: finalConversions,
-            termsAcceptedAt: row.terms_accepted_at || localAff?.termsAcceptedAt || new Date().toISOString(),
-            privacyAcceptedAt: row.privacy_accepted_at || localAff?.privacyAcceptedAt || new Date().toISOString(),
-            createdAt: row.created_at || localAff?.createdAt || new Date().toISOString(),
-            approvedAt: row.approved_at || localAff?.approvedAt,
-            approvedBy: row.approved_by || localAff?.approvedBy,
-            parentAffiliateId: row.parent_affiliate_id || localAff?.parentAffiliateId,
-            parentAffiliateCode: row.parent_affiliate_code || localAff?.parentAffiliateCode,
-            parentAffiliateName: row.parent_affiliate_name || localAff?.parentAffiliateName
+            termsAcceptedAt: row.terms_accepted_at || meta?.termsAcceptedAt || localAff?.termsAcceptedAt || new Date().toISOString(),
+            privacyAcceptedAt: row.privacy_accepted_at || meta?.privacyAcceptedAt || localAff?.privacyAcceptedAt || new Date().toISOString(),
+            createdAt: row.created_at || meta?.createdAt || localAff?.createdAt || new Date().toISOString(),
+            approvedAt: row.approved_at || meta?.approvedAt || localAff?.approvedAt || new Date().toISOString(),
+            approvedBy: row.approved_by || meta?.approvedBy || localAff?.approvedBy,
+            parentAffiliateId: resolvedParentId,
+            parentAffiliateCode: resolvedParentCode,
+            parentAffiliateName: resolvedParentName
           };
 
           if (!localAff) {
@@ -1203,7 +1364,7 @@ export class DatabaseService {
     if (isSupabaseConfigured && supabase) {
       try {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
-        let query = supabase.from('afiliados').select('id, exclusive_code, email');
+        let query = supabase.from('afiliados').select('*');
         if (isUuid) {
           query = query.eq('id', cleanId);
         } else {
@@ -1213,25 +1374,54 @@ export class DatabaseService {
         const { data: rows, error: selectErr } = await query.limit(1);
 
         if (!selectErr && rows && rows.length > 0) {
-          const targetId = rows[0].id;
-          const { error: updateErr } = await supabase
-            .from('afiliados')
-            .update({ commission_rate: validatedRate })
-            .eq('id', targetId);
+          const current = rows[0];
+          const parsed = DatabaseService.parseAffiliateStatus(current.status);
+          parsed.commissionRate = validatedRate;
+          const newEncodedStatus = DatabaseService.encodeAffiliateStatus({
+            status: parsed.status,
+            password: parsed.password,
+            parentAffiliateCode: parsed.parentAffiliateCode,
+            parentAffiliateId: parsed.parentAffiliateId,
+            parentAffiliateName: parsed.parentAffiliateName,
+            commissionRate: validatedRate
+          });
 
-          if (updateErr) {
-            console.error('Erro ao atualizar commission_rate no Supabase:', updateErr);
-            return { success: false, error: updateErr.message };
-          }
-        } else {
-          // Tenta atualizar direto pelo id fornecido caso não encontre na busca inicial
-          const { error: directErr } = await supabase
+          // Tenta atualizar coluna commission_rate e status codificado
+          const updateRes = await supabase
             .from('afiliados')
-            .update({ commission_rate: validatedRate })
-            .eq('id', cleanId);
-          if (directErr) {
-            console.warn('Tentativa direta de atualizar rate no Supabase falhou:', directErr.message);
+            .update({ commission_rate: validatedRate, status: newEncodedStatus })
+            .eq('id', current.id);
+
+          if (updateRes.error) {
+            // Se a coluna commission_rate não existir no schema, grava pelo status codificado
+            await supabase
+              .from('afiliados')
+              .update({ status: newEncodedStatus })
+              .eq('id', current.id);
           }
+
+          // Atualiza também mensagem de perfil para persistência permanente
+          try {
+            await supabase.from('mensagens').upsert({
+              id: `aff_meta_${current.id}`,
+              destinatario_id: current.id,
+              telefone: (current.document_number || '').replace(/\D/g, '') || '00000000000',
+              tipo: 'afiliado_perfil',
+              conteudo: JSON.stringify({
+                id: current.id,
+                exclusiveCode: current.exclusive_code,
+                email: current.email,
+                commissionRate: validatedRate,
+                parentAffiliateCode: parsed.parentAffiliateCode,
+                parentAffiliateId: parsed.parentAffiliateId,
+                parentAffiliateName: parsed.parentAffiliateName,
+                password: parsed.password,
+                status: parsed.status
+              }),
+              status: parsed.status,
+              data_envio: new Date().toISOString()
+            });
+          } catch {}
         }
       } catch (err: any) {
         console.error('Erro ao salvar nova taxa de comissão no Supabase:', err);
@@ -1243,7 +1433,7 @@ export class DatabaseService {
   }
 
   /**
-   * Registra a venda atribuída ao afiliado, calcula comissão e atualiza saldos
+   * Registra a venda atribuída ao afiliado, calcula comissão com divisão automática de rede e atualiza saldos
    */
   static async recordAffiliateSale(params: {
     affiliateCode: string;
@@ -1263,9 +1453,9 @@ export class DatabaseService {
       return { success: false, message: 'Afiliado não encontrado.' };
     }
 
-    if (!aff.status.startsWith('aprovado')) {
-      console.warn(`[Afiliados] Afiliado ${cleanAffCode} não está aprovado (status: ${aff.status}).`);
-      return { success: false, message: 'Afiliado com conta pendente ou inativa.' };
+    if (aff.status === 'suspenso' || aff.status === 'recusado') {
+      console.warn(`[Afiliados] Afiliado ${cleanAffCode} inativo ou suspenso (status: ${aff.status}).`);
+      return { success: false, message: 'Afiliado inativo ou suspenso.' };
     }
 
     const localDb = readLocalDb();
@@ -1285,19 +1475,24 @@ export class DatabaseService {
       }
     }
 
-    const rate = aff.commissionRate || 0.15;
-    const commissionValue = Number((params.orderAmount * rate).toFixed(2));
+    // Taxa do afiliado vendedor: se for sub-afiliado tem a taxa destinada a ele (ex: 10%), se for direto recebe seus 100% (ex: 15%)
+    const sellerRate = aff.commissionRate !== undefined && aff.commissionRate !== null
+      ? aff.commissionRate
+      : (aff.parentAffiliateCode ? 0.10 : 0.15);
+
+    const sellerCommissionValue = Number((params.orderAmount * sellerRate).toFixed(2));
     const buyerFirstName = (params.buyerName || '').trim().split(' ')[0] || 'Cliente';
 
-    const newCommission: Commission = {
+    // 1. Comissão direta do afiliado vendedor
+    const directCommission: Commission = {
       id: params.paymentId ? `comm_${params.paymentId}` : `comm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       conversionId: params.paymentId ? `conv_${params.paymentId}` : `conv_${Date.now()}`,
       affiliateId: aff.id,
       affiliateCode: aff.exclusiveCode,
       affiliateName: aff.fullName,
       orderAmount: params.orderAmount,
-      commissionRate: rate,
-      commissionAmount: commissionValue,
+      commissionRate: sellerRate,
+      commissionAmount: sellerCommissionValue,
       campaign: params.campaign || 'padrao',
       status: 'pendente',
       buyerName: params.buyerName,
@@ -1308,9 +1503,9 @@ export class DatabaseService {
       createdAt: new Date().toISOString()
     };
 
-    localDb.comissoes.unshift(newCommission);
+    localDb.comissoes.unshift(directCommission);
 
-    // Garante presença do afiliado e atualiza saldo
+    // Garante presença do afiliado vendedor e atualiza saldo
     if (!localDb.afiliados) localDb.afiliados = [];
     const affIdx = localDb.afiliados.findIndex(a =>
       a.id === aff.id ||
@@ -1318,11 +1513,11 @@ export class DatabaseService {
     );
 
     if (affIdx !== -1) {
-      localDb.afiliados[affIdx].balancePending = Number(((localDb.afiliados[affIdx].balancePending || 0) + commissionValue).toFixed(2));
+      localDb.afiliados[affIdx].balancePending = Number(((localDb.afiliados[affIdx].balancePending || 0) + sellerCommissionValue).toFixed(2));
       localDb.afiliados[affIdx].totalConversions = (localDb.afiliados[affIdx].totalConversions || 0) + 1;
     } else {
       const fullAff = { ...aff };
-      fullAff.balancePending = Number(((fullAff.balancePending || 0) + commissionValue).toFixed(2));
+      fullAff.balancePending = Number(((fullAff.balancePending || 0) + sellerCommissionValue).toFixed(2));
       fullAff.totalConversions = (fullAff.totalConversions || 0) + 1;
       localDb.afiliados.unshift(fullAff);
     }
@@ -1337,103 +1532,113 @@ export class DatabaseService {
       localDb.afiliados_links[linkIdx].revenueGenerated = Number(((localDb.afiliados_links[linkIdx].revenueGenerated || 0) + params.orderAmount).toFixed(2));
     }
 
-    writeLocalDb(localDb);
-
-    // Persistência em Nuvem (Supabase): salva comissão na tabela mensagens com tipo 'comissao'
+    // Persistência em Nuvem (Supabase): salva comissão direta em 'mensagens' com tipo 'comissao'
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('mensagens').upsert({
-          id: newCommission.id,
+          id: directCommission.id,
           destinatario_id: aff.id,
           telefone: (params.buyerCpf || '00000000000').replace(/\D/g, ''),
           tipo: 'comissao',
-          conteudo: JSON.stringify(newCommission),
-          status: newCommission.status,
-          data_envio: newCommission.createdAt
+          conteudo: JSON.stringify(directCommission),
+          status: directCommission.status,
+          data_envio: directCommission.createdAt
         });
-        console.log(`[Afiliados] Comissão ${newCommission.id} persistida no Supabase com sucesso.`);
       } catch (sbErr) {
         console.warn('Erro ao salvar comissão no Supabase mensagens:', sbErr);
       }
     }
 
-    console.log(`[Afiliados] Comissão de R$ ${commissionValue.toFixed(2)} salva com sucesso para ${aff.fullName} (${aff.exclusiveCode})! Comprador: ${buyerFirstName}`);
+    console.log(`[Afiliados] Comissão direta de R$ ${sellerCommissionValue.toFixed(2)} (${(sellerRate * 100).toFixed(0)}%) atribuída com sucesso a ${aff.fullName} (${aff.exclusiveCode})`);
 
-    // Se o afiliado foi indicado por um patrocinador (sub-afiliado), calcula a comissão residual do pai
+    // 2. DIVISÃO AUTOMÁTICA DE COMISSÃO: Se for venda de um sub-afiliado (afiliado do afiliado),
+    // a comissão destinada a ele fica com ele (sellerCommissionValue) e a outra parte vai para o patrocinador!
     if (aff.parentAffiliateCode || aff.parentAffiliateId) {
       try {
-        const parentCode = (aff.parentAffiliateCode || aff.parentAffiliateId || '').trim();
-        const parentAff = await this.getAffiliateByIdOrDoc(parentCode);
+        const parentCodeOrId = (aff.parentAffiliateCode || aff.parentAffiliateId || '').trim();
+        const parentAff = await this.getAffiliateByIdOrDoc(parentCodeOrId);
+
         if (parentAff && parentAff.exclusiveCode.toUpperCase() !== aff.exclusiveCode.toUpperCase()) {
-          const parentBaseRate = parentAff.commissionRate || 0.15;
-          const subRate = aff.commissionRate || 0.10;
-          // Margem residual: a diferença entre a taxa do pai e a do filho (mínimo 1%)
-          const overrideRate = Number(Math.max(0.01, parentBaseRate - subRate).toFixed(4));
+          const parentBaseRate = parentAff.commissionRate !== undefined && parentAff.commissionRate !== null
+            ? parentAff.commissionRate
+            : 0.15;
+
+          // Margem residual que vai para o patrocinador (diferença entre a taxa dele e a taxa destinada ao sub-afiliado)
+          const overrideRate = Number(Math.max(0, parentBaseRate - sellerRate).toFixed(4));
           const overrideValue = Number((params.orderAmount * overrideRate).toFixed(2));
 
-          const overrideCommission: Commission = {
-            id: params.paymentId ? `comm_ovr_${params.paymentId}_${parentAff.id.substring(0, 5)}` : `comm_ovr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            conversionId: params.paymentId ? `conv_${params.paymentId}` : `conv_${Date.now()}`,
-            affiliateId: parentAff.id,
-            affiliateCode: parentAff.exclusiveCode,
-            affiliateName: parentAff.fullName,
-            orderAmount: params.orderAmount,
-            commissionRate: overrideRate,
-            commissionAmount: overrideValue,
-            campaign: `rede_${aff.exclusiveCode}`,
-            status: 'pendente',
-            buyerName: params.buyerName,
-            buyerFirstName,
-            buyerCpf: params.buyerCpf,
-            ticketsCount: params.ticketsCount,
-            tickets: params.tickets,
-            isOverride: true,
-            subAffiliateCode: aff.exclusiveCode,
-            subAffiliateName: aff.fullName,
-            createdAt: new Date().toISOString()
-          };
+          if (overrideValue > 0) {
+            const overrideCommission: Commission = {
+              id: params.paymentId ? `comm_ovr_${params.paymentId}_${parentAff.id.substring(0, 5)}` : `comm_ovr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+              conversionId: params.paymentId ? `conv_${params.paymentId}` : `conv_${Date.now()}`,
+              affiliateId: parentAff.id,
+              affiliateCode: parentAff.exclusiveCode,
+              affiliateName: parentAff.fullName,
+              orderAmount: params.orderAmount,
+              commissionRate: overrideRate,
+              commissionAmount: overrideValue,
+              campaign: `rede_${aff.exclusiveCode}`,
+              status: 'pendente',
+              buyerName: params.buyerName,
+              buyerFirstName,
+              buyerCpf: params.buyerCpf,
+              ticketsCount: params.ticketsCount,
+              tickets: params.tickets,
+              isOverride: true,
+              subAffiliateCode: aff.exclusiveCode,
+              subAffiliateName: aff.fullName,
+              createdAt: new Date().toISOString()
+            };
 
-          localDb.comissoes.unshift(overrideCommission);
+            localDb.comissoes.unshift(overrideCommission);
 
-          // Atualiza saldo do patrocinador
-          const parentIdx = localDb.afiliados.findIndex(a =>
-            a.id === parentAff.id ||
-            a.exclusiveCode.toUpperCase() === parentAff.exclusiveCode.toUpperCase()
-          );
+            // Atualiza saldo pendente e conversões do patrocinador
+            const parentIdx = localDb.afiliados.findIndex(a =>
+              a.id === parentAff.id ||
+              a.exclusiveCode.toUpperCase() === parentAff.exclusiveCode.toUpperCase()
+            );
 
-          if (parentIdx !== -1) {
-            localDb.afiliados[parentIdx].balancePending = Number(((localDb.afiliados[parentIdx].balancePending || 0) + overrideValue).toFixed(2));
-            localDb.afiliados[parentIdx].totalConversions = (localDb.afiliados[parentIdx].totalConversions || 0) + 1;
-          }
-
-          writeLocalDb(localDb);
-
-          if (isSupabaseConfigured && supabase) {
-            try {
-              await supabase.from('mensagens').upsert({
-                id: overrideCommission.id,
-                destinatario_id: parentAff.id,
-                telefone: (params.buyerCpf || '00000000000').replace(/\D/g, ''),
-                tipo: 'comissao',
-                conteudo: JSON.stringify(overrideCommission),
-                status: overrideCommission.status,
-                data_envio: overrideCommission.createdAt
-              });
-            } catch (pSbErr) {
-              console.warn('Erro ao salvar comissão residual do pai no Supabase:', pSbErr);
+            if (parentIdx !== -1) {
+              localDb.afiliados[parentIdx].balancePending = Number(((localDb.afiliados[parentIdx].balancePending || 0) + overrideValue).toFixed(2));
+              localDb.afiliados[parentIdx].totalConversions = (localDb.afiliados[parentIdx].totalConversions || 0) + 1;
+            } else {
+              const fullParent = { ...parentAff };
+              fullParent.balancePending = Number(((fullParent.balancePending || 0) + overrideValue).toFixed(2));
+              fullParent.totalConversions = (fullParent.totalConversions || 0) + 1;
+              localDb.afiliados.unshift(fullParent);
             }
+
+            // Persiste comissão residual do patrocinador no Supabase
+            if (isSupabaseConfigured && supabase) {
+              try {
+                await supabase.from('mensagens').upsert({
+                  id: overrideCommission.id,
+                  destinatario_id: parentAff.id,
+                  telefone: (params.buyerCpf || '00000000000').replace(/\D/g, ''),
+                  tipo: 'comissao',
+                  conteudo: JSON.stringify(overrideCommission),
+                  status: overrideCommission.status,
+                  data_envio: overrideCommission.createdAt
+                });
+              } catch (pSbErr) {
+                console.warn('Erro ao salvar comissão residual no Supabase:', pSbErr);
+              }
+            }
+
+            console.log(`[Afiliados] Divisão automática: comissão residual de R$ ${overrideValue.toFixed(2)} (${(overrideRate * 100).toFixed(0)}%) creditada ao patrocinador ${parentAff.fullName} (${parentAff.exclusiveCode})`);
           }
-          console.log(`[Afiliados] Comissão residual de R$ ${overrideValue.toFixed(2)} atribuída ao patrocinador ${parentAff.fullName} (${parentAff.exclusiveCode})`);
         }
       } catch (parentErr) {
-        console.error('Erro ao processar comissão residual do patrocinador:', parentErr);
+        console.error('Erro ao processar divisão automática de comissão da rede:', parentErr);
       }
     }
 
+    writeLocalDb(localDb);
+
     return {
       success: true,
-      commission: newCommission,
-      message: `Comissão de R$ ${commissionValue.toFixed(2)} atribuída com sucesso ao afiliado ${aff.fullName} (${aff.exclusiveCode})!`
+      commission: directCommission,
+      message: `Comissão de R$ ${sellerCommissionValue.toFixed(2)} atribuída com sucesso ao afiliado ${aff.fullName} (${aff.exclusiveCode})!`
     };
   }
 
@@ -1475,7 +1680,7 @@ export class DatabaseService {
   }
 
   /**
-   * Retorna comissões cadastradas no banco de dados
+   * Retorna comissões cadastradas no banco de dados (Supabase + Local)
    */
   static async getCommissions(affiliateIdOrCode?: string): Promise<Commission[]> {
     const localDb = readLocalDb();
@@ -1518,16 +1723,23 @@ export class DatabaseService {
     }
 
     const clean = affiliateIdOrCode.trim().toUpperCase();
-    const aff = (localDb.afiliados || []).find(a =>
+    let aff = (localDb.afiliados || []).find(a =>
       a.id.toUpperCase() === clean ||
       a.exclusiveCode.toUpperCase() === clean ||
       (a.email && a.email.toUpperCase() === clean)
     );
 
+    if (!aff) {
+      try {
+        aff = (await this.getAffiliateByIdOrDoc(clean)) || undefined;
+      } catch {}
+    }
+
     const validIds = new Set<string>([clean]);
     if (aff) {
       if (aff.id) validIds.add(aff.id.toUpperCase());
       if (aff.exclusiveCode) validIds.add(aff.exclusiveCode.toUpperCase());
+      if (aff.email) validIds.add(aff.email.toUpperCase());
     }
 
     return list.filter(c =>

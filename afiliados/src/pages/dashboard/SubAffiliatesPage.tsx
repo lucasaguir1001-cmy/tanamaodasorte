@@ -215,6 +215,15 @@ export const SubAffiliatesPage: React.FC = () => {
 
       if (data.success && data.affiliate) {
         setFormSuccess(`Afiliado ${data.affiliate.fullName} cadastrado com sucesso! Código: ${data.affiliate.exclusiveCode}`);
+        const allAffs = MockDatabase.getAffiliates();
+        allAffs.unshift(data.affiliate);
+        MockDatabase.saveAffiliates(allAffs);
+        setSubAffiliates(prev => {
+          const map = new Map<string, Affiliate>();
+          map.set(data.affiliate.id || data.affiliate.exclusiveCode, data.affiliate);
+          prev.forEach(p => map.set(p.id || p.exclusiveCode, p));
+          return Array.from(map.values());
+        });
         // Reset form
         setFormName('');
         setFormEmail('');
