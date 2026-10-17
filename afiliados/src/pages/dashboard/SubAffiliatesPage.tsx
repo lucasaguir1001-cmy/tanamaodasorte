@@ -46,6 +46,13 @@ export const SubAffiliatesPage: React.FC = () => {
   const [subAffiliates, setSubAffiliates] = useState<Affiliate[]>([]);
   const [overrideCommissions, setOverrideCommissions] = useState<Commission[]>([]);
 
+  // Sub-affiliate commission rate editing modal state
+  const [editingSub, setEditingSub] = useState<Affiliate | null>(null);
+  const [editRateValue, setEditRateValue] = useState<number>(10);
+  const [isSavingRate, setIsSavingRate] = useState(false);
+  const [rateModalError, setRateModalError] = useState<string | null>(null);
+  const [rateModalSuccess, setRateModalSuccess] = useState<string | null>(null);
+
   // Direct Registration Modal State
   const [showModal, setShowModal] = useState(false);
   const [formName, setFormName] = useState('');
@@ -92,7 +99,13 @@ export const SubAffiliatesPage: React.FC = () => {
       fetchedSubs.forEach(a => mergedMap.set(a.id || a.exclusiveCode, a));
       localSubs.forEach(a => {
         if (!mergedMap.has(a.id || a.exclusiveCode)) {
-          mergedMap.set(a.id || a.exclusiveCode, a);
+          mergedMap.set(a.id || a.exclusiveCode, {
+            ...a,
+            networkLevel: a.networkLevel || 1,
+            sponsorName: a.sponsorName || affiliate?.fullName || affiliate?.exclusiveCode,
+            sponsorCode: a.sponsorCode || affiliate?.exclusiveCode,
+            isDirect: a.isDirect !== undefined ? a.isDirect : true
+          });
         }
       });
 
@@ -120,7 +133,7 @@ export const SubAffiliatesPage: React.FC = () => {
       );
       setSubAffiliates(localSubs);
     }
-  }, [affiliate?.exclusiveCode, affiliate?.id]);
+  }, [affiliate?.exclusiveCode, affiliate?.id, affiliate?.fullName]);
 
   useEffect(() => {
     loadNetworkData();
@@ -132,6 +145,66 @@ export const SubAffiliatesPage: React.FC = () => {
     setIsRefreshing(true);
     await loadNetworkData();
     setTimeout(() => setIsRefreshing(false), 500);
+  };
+
+  const handleOpenEditRate = (sub: Affiliate) => {
+    setEditingSub(sub);
+    setEditRateValue(Math.round((sub.commissionRate || 0.10) * 100));
+    setRateModalError(null);
+    setRateModalSuccess(null);
+  };
+
+  const handleSaveRate = async () => {
+    if (!editingSub) return;
+    setIsSavingRate(true);
+    setRateModalError(null);
+    setRateModalSuccess(null);
+
+    try {
+      const res = await fetch('/api/afiliados/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          affiliateId: editingSub.id || editingSub.exclusiveCode,
+          action: 'update_rate',
+          newRate: editRateValue / 100,
+          commissionRate: editRateValue / 100
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setRateModalSuccess(`Comissão de ${editingSub.fullName} alterada para ${editRateValue}% com sucesso!`);
+        
+        // Atualiza estado local imediatamente
+        const updatedRate = editRateValue / 100;
+        setSubAffiliates(prev => prev.map(s => {
+          if (s.id === editingSub.id || s.exclusiveCode === editingSub.exclusiveCode) {
+            return { ...s, commissionRate: updatedRate };
+          }
+          return s;
+        }));
+
+        // Atualiza cache local
+        const allAffs = MockDatabase.getAffiliates();
+        const affIdx = allAffs.findIndex(a => a.id === editingSub.id || a.exclusiveCode === editingSub.exclusiveCode);
+        if (affIdx !== -1) {
+          allAffs[affIdx].commissionRate = updatedRate;
+          MockDatabase.saveAffiliates(allAffs);
+        }
+
+        setTimeout(() => {
+          setEditingSub(null);
+          setRateModalSuccess(null);
+        }, 1500);
+      } else {
+        setRateModalError(data.error || 'Erro ao atualizar comissão.');
+      }
+    } catch {
+      setRateModalError('Erro de conexão ao salvar comissão.');
+    } finally {
+      setIsSavingRate(false);
+    }
   };
 
   const handleCopyLink = () => {
@@ -537,7 +610,8 @@ export const SubAffiliatesPage: React.FC = () => {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
-                  <th className="py-3 px-3">Afiliado</th>
+                  <th className="py-3 px-3">Afiliado &amp; Nível</th>
+                  <th className="py-3 px-3">Quem Afiliou</th>
                   <th className="py-3 px-3">Código</th>
                   <th className="py-3 px-3">WhatsApp</th>
                   <th className="py-3 px-3">% Dele</th>
@@ -552,13 +626,40 @@ export const SubAffiliatesPage: React.FC = () => {
                   const subRatePercent = Math.round((sub.commissionRate || 0.10) * 100);
                   const parentSpread = Math.max(1, parentMaxPercent - subRatePercent);
                   const cleanPhone = (sub.whatsapp || sub.phone || '').replace(/\D/g, '');
+                  const isDirect = sub.networkLevel === 1 || sub.isDirect || sub.sponsorCode === affiliate?.exclusiveCode || !sub.sponsorCode;
 
                   return (
                     <tr key={sub.id || sub.exclusiveCode} className="hover:bg-slate-800/40 transition-colors">
-                      {/* Nome e E-mail */}
+                      {/* Nome, E-mail e Nível da Rede */}
                       <td className="py-3 px-3">
-                        <div className="font-bold text-white">{sub.fullName}</div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-white">{sub.fullName}</span>
+                          {isDirect ? (
+                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold whitespace-nowrap">
+                              1º Nível (Direto)
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[9px] font-bold whitespace-nowrap">
+                              {sub.networkLevel || 2}º Nível (Sub do Sub)
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[11px] text-slate-400">{sub.email}</div>
+                      </td>
+
+                      {/* Quem Afiliou (Patrocinador) */}
+                      <td className="py-3 px-3">
+                        {isDirect ? (
+                          <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                            <span>Você ({affiliate?.exclusiveCode})</span>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="font-bold text-slate-200">{sub.sponsorName || 'Afiliado da Rede'}</div>
+                            <div className="text-[10px] font-mono text-amber-400 font-semibold">{sub.sponsorCode}</div>
+                          </div>
+                        )}
                       </td>
 
                       {/* Código Exclusivo */}
@@ -572,7 +673,7 @@ export const SubAffiliatesPage: React.FC = () => {
                       <td className="py-3 px-3">
                         {cleanPhone ? (
                           <a
-                            href={`https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(`Olá ${sub.fullName}, aqui é seu patrocinador do Tá Na Mão da SORTE!`)}`}
+                            href={`https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(`Olá ${sub.fullName}, aqui é seu parceiro da rede do Tá Na Mão da SORTE!`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-medium"
@@ -586,9 +687,19 @@ export const SubAffiliatesPage: React.FC = () => {
                         )}
                       </td>
 
-                      {/* % Dele */}
+                      {/* % Dele com botão rápido para alterar */}
                       <td className="py-3 px-3">
-                        <span className="font-bold text-emerald-400">{subRatePercent}%</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-emerald-400 text-sm">{subRatePercent}%</span>
+                          <button
+                            onClick={() => handleOpenEditRate(sub)}
+                            className="px-1.5 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 hover:text-emerald-300 text-[10px] font-bold transition-colors cursor-pointer border border-emerald-500/30 flex items-center gap-1"
+                            title="Alterar comissão deste afiliado"
+                          >
+                            <Percent className="w-2.5 h-2.5" />
+                            <span>Alterar</span>
+                          </button>
+                        </div>
                         <div className="text-[10px] text-slate-500">R$ {((subRatePercent * 2) / 100).toFixed(2)}/bilhete</div>
                       </td>
 
@@ -612,23 +723,33 @@ export const SubAffiliatesPage: React.FC = () => {
 
                       {/* Ações */}
                       <td className="py-3 px-3 text-right">
-                        <button
-                          onClick={() => handleCopySubCode(`https://tanamaodasorte.com.br/?afiliado=${sub.exclusiveCode}`)}
-                          className="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1"
-                          title="Copiar link de vendas deste afiliado"
-                        >
-                          {copiedSubCode === `https://tanamaodasorte.com.br/?afiliado=${sub.exclusiveCode}` ? (
-                            <>
-                              <Check className="w-3 h-3 text-emerald-400" />
-                              <span className="text-emerald-400">Copiado</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" />
-                              <span>Link Dele</span>
-                            </>
-                          )}
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditRate(sub)}
+                            className="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1 font-semibold border border-slate-700/80"
+                            title="Alterar porcentagem deste afiliado"
+                          >
+                            <Percent className="w-3 h-3" />
+                            <span>Alterar %</span>
+                          </button>
+                          <button
+                            onClick={() => handleCopySubCode(`https://tanamaodasorte.com.br/?afiliado=${sub.exclusiveCode}`)}
+                            className="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1"
+                            title="Copiar link de vendas deste afiliado"
+                          >
+                            {copiedSubCode === `https://tanamaodasorte.com.br/?afiliado=${sub.exclusiveCode}` ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-400" />
+                                <span className="text-emerald-400">Copiado</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3" />
+                                <span>Link Dele</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -784,6 +905,146 @@ export const SubAffiliatesPage: React.FC = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal de Alteração de Comissão (%) do Subafiliado */}
+      <Modal
+        isOpen={Boolean(editingSub)}
+        onClose={() => {
+          if (!isSavingRate) {
+            setEditingSub(null);
+            setRateModalError(null);
+            setRateModalSuccess(null);
+          }
+        }}
+        title={`Alterar Comissão: ${editingSub?.fullName || ''}`}
+        maxWidth="md"
+      >
+        {editingSub && (
+          <div className="space-y-4">
+            <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-slate-400">Afiliado selecionado</div>
+                <div className="font-black text-white text-sm">{editingSub.fullName}</div>
+                <div className="text-[11px] font-mono text-amber-400 font-semibold">{editingSub.exclusiveCode}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-slate-400 uppercase font-bold">Quem Afiliou</div>
+                <div className="text-xs font-bold text-slate-200">
+                  {editingSub.networkLevel === 1 || editingSub.isDirect || editingSub.sponsorCode === affiliate?.exclusiveCode || !editingSub.sponsorCode
+                    ? `Você (${affiliate?.exclusiveCode})`
+                    : `${editingSub.sponsorName || 'Rede'} (${editingSub.sponsorCode || ''})`}
+                </div>
+                <div className="text-[10px] text-emerald-400 font-semibold">
+                  {editingSub.networkLevel === 1 || editingSub.isDirect || !editingSub.networkLevel ? '1º Nível (Direto)' : `${editingSub.networkLevel}º Nível`}
+                </div>
+              </div>
+            </div>
+
+            {rateModalError && (
+              <div className="p-3 bg-red-950/60 border border-red-500/50 rounded-xl text-xs text-red-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{rateModalError}</span>
+              </div>
+            )}
+
+            {rateModalSuccess && (
+              <div className="p-3 bg-emerald-950/60 border border-emerald-500/50 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+                <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span>{rateModalSuccess}</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-300">
+                  Nova Porcentagem de Comissão:
+                </label>
+                <span className="text-base font-black text-emerald-400 font-mono">
+                  {editRateValue}%
+                </span>
+              </div>
+
+              {/* Presets Rápidos */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[5, 8, 10, 12, parentMaxPercent].filter(v => v <= parentMaxPercent).map(rate => (
+                  <button
+                    key={rate}
+                    type="button"
+                    onClick={() => setEditRateValue(rate)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      editRateValue === rate
+                        ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30'
+                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    {rate}%
+                  </button>
+                ))}
+              </div>
+
+              {/* Slider */}
+              <input
+                type="range"
+                min={1}
+                max={parentMaxPercent}
+                value={editRateValue}
+                onChange={(e) => setEditRateValue(Number(e.target.value))}
+                className="w-full accent-emerald-500 cursor-pointer h-2 bg-slate-800 rounded-lg"
+              />
+              <div className="flex justify-between text-[11px] text-slate-500 font-mono">
+                <span>1% (Mínimo)</span>
+                <span className="text-emerald-400 font-bold">{editRateValue}% Selecionado</span>
+                <span>{parentMaxPercent}% (Seu Máximo)</span>
+              </div>
+            </div>
+
+            {/* Simulação em tempo real */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-left">
+                <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">Comissão Dele</span>
+                <div className="text-base font-black text-white mt-0.5">{editRateValue}%</div>
+                <div className="text-[10px] text-emerald-300 font-mono">R$ {((editRateValue * 2) / 100).toFixed(2)} por bilhete</div>
+              </div>
+
+              <div className="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-left">
+                <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Seu Spread Residual</span>
+                <div className="text-base font-black text-amber-300 mt-0.5">{Math.max(1, parentMaxPercent - editRateValue)}%</div>
+                <div className="text-[10px] text-amber-400/80 font-mono">R$ {((Math.max(1, parentMaxPercent - editRateValue) * 2) / 100).toFixed(2)} por bilhete</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setEditingSub(null)}
+                disabled={isSavingRate}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveRate}
+                disabled={isSavingRate}
+                className="flex items-center gap-1.5"
+              >
+                {isSavingRate ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Salvar Nova Porcentagem</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

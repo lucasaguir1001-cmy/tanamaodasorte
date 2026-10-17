@@ -1551,25 +1551,39 @@ export class DatabaseService {
 
     console.log(`[Afiliados] Comissão direta de R$ ${sellerCommissionValue.toFixed(2)} (${(sellerRate * 100).toFixed(0)}%) atribuída com sucesso a ${aff.fullName} (${aff.exclusiveCode})`);
 
-    // 2. DIVISÃO AUTOMÁTICA DE COMISSÃO: Se for venda de um sub-afiliado (afiliado do afiliado),
-    // a comissão destinada a ele fica com ele (sellerCommissionValue) e a outra parte vai para o patrocinador!
+    // 2. DIVISÃO AUTOMÁTICA DE COMISSÃO MULTINÍVEL (Afiliados e Sub-afiliados em cascata)
     if (aff.parentAffiliateCode || aff.parentAffiliateId) {
       try {
-        const parentCodeOrId = (aff.parentAffiliateCode || aff.parentAffiliateId || '').trim();
-        const parentAff = await this.getAffiliateByIdOrDoc(parentCodeOrId);
+        let currentChild = aff;
+        let currentChildRate = sellerRate;
+        let uplineDepth = 0;
+        const maxUplineDepth = 5;
+        const visitedUplineIds = new Set<string>([aff.id, aff.exclusiveCode.toUpperCase()]);
 
-        if (parentAff && parentAff.exclusiveCode.toUpperCase() !== aff.exclusiveCode.toUpperCase()) {
+        while ((currentChild.parentAffiliateCode || currentChild.parentAffiliateId) && uplineDepth < maxUplineDepth) {
+          uplineDepth++;
+          const parentCodeOrId = (currentChild.parentAffiliateCode || currentChild.parentAffiliateId || '').trim();
+          const parentAff = await this.getAffiliateByIdOrDoc(parentCodeOrId);
+
+          if (!parentAff || visitedUplineIds.has(parentAff.id) || visitedUplineIds.has(parentAff.exclusiveCode.toUpperCase())) {
+            break;
+          }
+          visitedUplineIds.add(parentAff.id);
+          visitedUplineIds.add(parentAff.exclusiveCode.toUpperCase());
+
           const parentBaseRate = parentAff.commissionRate !== undefined && parentAff.commissionRate !== null
             ? parentAff.commissionRate
             : 0.15;
 
-          // Margem residual que vai para o patrocinador (diferença entre a taxa dele e a taxa destinada ao sub-afiliado)
-          const overrideRate = Number(Math.max(0, parentBaseRate - sellerRate).toFixed(4));
+          // Margem residual deste nível (diferença entre a taxa dele e a taxa do nível imediatamente abaixo)
+          const overrideRate = Number(Math.max(0, parentBaseRate - currentChildRate).toFixed(4));
           const overrideValue = Number((params.orderAmount * overrideRate).toFixed(2));
 
           if (overrideValue > 0) {
             const overrideCommission: Commission = {
-              id: params.paymentId ? `comm_ovr_${params.paymentId}_${parentAff.id.substring(0, 5)}` : `comm_ovr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+              id: params.paymentId
+                ? `comm_ovr_${params.paymentId}_${parentAff.id.substring(0, 5)}_lvl${uplineDepth}`
+                : `comm_ovr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}_lvl${uplineDepth}`,
               conversionId: params.paymentId ? `conv_${params.paymentId}` : `conv_${Date.now()}`,
               affiliateId: parentAff.id,
               affiliateCode: parentAff.exclusiveCode,
@@ -1592,7 +1606,7 @@ export class DatabaseService {
 
             localDb.comissoes.unshift(overrideCommission);
 
-            // Atualiza saldo pendente e conversões do patrocinador
+            // Atualiza saldo pendente e conversões do patrocinador deste nível
             const parentIdx = localDb.afiliados.findIndex(a =>
               a.id === parentAff.id ||
               a.exclusiveCode.toUpperCase() === parentAff.exclusiveCode.toUpperCase()
@@ -1625,11 +1639,14 @@ export class DatabaseService {
               }
             }
 
-            console.log(`[Afiliados] Divisão automática: comissão residual de R$ ${overrideValue.toFixed(2)} (${(overrideRate * 100).toFixed(0)}%) creditada ao patrocinador ${parentAff.fullName} (${parentAff.exclusiveCode})`);
+            console.log(`[Afiliados] Divisão automática nível ${uplineDepth}: comissão residual de R$ ${overrideValue.toFixed(2)} (${(overrideRate * 100).toFixed(0)}%) creditada a ${parentAff.fullName} (${parentAff.exclusiveCode})`);
           }
+
+          currentChildRate = parentBaseRate;
+          currentChild = parentAff;
         }
       } catch (parentErr) {
-        console.error('Erro ao processar divisão automática de comissão da rede:', parentErr);
+        console.error('Erro ao processar divisão automática de comissão multinível:', parentErr);
       }
     }
 

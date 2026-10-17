@@ -102,6 +102,10 @@ export interface Affiliate {
   parentAffiliateId?: string;
   parentAffiliateCode?: string;
   parentAffiliateName?: string;
+  sponsorName?: string;
+  sponsorCode?: string;
+  networkLevel?: number;
+  isDirect?: boolean;
 }
 
 export interface AffiliateLink {
